@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FitMaster.Application/FitMaster.Application.csproj" />
+    <Project Path="src/FitMaster.Domain/FitMaster.Domain.csproj" />
+    <Project Path="src/FitMaster.Infrastructure/FitMaster.Infrastructure.csproj" />
+    <Project Path="src/FitMaster.WebApi/FitMaster.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FitMaster.Application.Tests/FitMaster.Application.Tests.csproj" />
+    <Project Path="tests/FitMaster.Domain.Tests/FitMaster.Domain.Tests.csproj" />
+    <Project Path="tests/FitMaster.WebApi.IntegrationTests/FitMaster.WebApi.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

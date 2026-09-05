@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>fitmaster-webapi-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FitMaster.Infrastructure\FitMaster.Infrastructure.csproj" />
+    <ProjectReference Include="..\FitMaster.Application\FitMaster.Application.csproj" />
+  </ItemGroup>
+
+</Project>

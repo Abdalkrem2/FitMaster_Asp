@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\FitMaster.Application\FitMaster.Application.csproj" />
+    <ProjectReference Include="..\FitMaster.Domain\FitMaster.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
