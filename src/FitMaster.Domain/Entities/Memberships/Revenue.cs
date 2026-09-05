@@ -3,7 +3,7 @@ using FitMaster.Domain.Entities.Identity;
 
 namespace FitMaster.Domain.Entities.Memberships;
 
-/// <summary>A single recorded income transaction (e.g. a membership payment).</summary>
+
 public class Revenue : BaseEntity
 {
     public required long MemberId { get; set; }
@@ -14,7 +14,6 @@ public class Revenue : BaseEntity
 
     public Membership Membership { get; set; } = null!;
 
-    /// <summary>The staff member (employee/admin) who recorded this transaction.</summary>
     public required long CreatedById { get; set; }
 
     public User CreatedBy { get; set; } = null!;

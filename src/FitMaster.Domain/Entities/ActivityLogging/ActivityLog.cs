@@ -4,7 +4,7 @@ using FitMaster.Domain.Enums;
 
 namespace FitMaster.Domain.Entities.ActivityLogging;
 
-/// <summary>An audit-trail entry: who did what, to which entity, and when.</summary>
+
 public class ActivityLog : BaseEntity
 {
     public required long PerformedById { get; set; }

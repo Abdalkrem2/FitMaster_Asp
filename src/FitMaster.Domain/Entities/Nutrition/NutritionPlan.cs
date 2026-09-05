@@ -4,7 +4,7 @@ using FitMaster.Domain.Enums;
 
 namespace FitMaster.Domain.Entities.Nutrition;
 
-/// <summary>A generated (or manually built) daily nutrition plan for a member.</summary>
+
 public class NutritionPlan : BaseEntity
 {
     public required long MemberId { get; set; }

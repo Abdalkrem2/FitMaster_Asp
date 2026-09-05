@@ -3,14 +3,10 @@ using FitMaster.Domain.Enums;
 
 namespace FitMaster.Domain.Entities.Exercises;
 
-/// <summary>
-/// A catalog exercise (e.g. "Barbell Bench Press"). This is read-only reference
-/// data seeded once (see the architecture decision in the project plan) - the
-/// application never creates/updates/deletes these through its own CRUD flows.
-/// </summary>
+
 public class Exercise : BaseEntity<Guid>
 {
-    /// <summary>Short external code, e.g. from the source dataset.</summary>
+   
     public string? Code { get; set; }
 
     public DifficultyLevel? DifficultyLevel { get; set; }

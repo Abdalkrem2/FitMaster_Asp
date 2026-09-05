@@ -1,6 +1,5 @@
 namespace FitMaster.Domain.Enums;
 
-/// <summary>The member's primary fitness objective.</summary>
 public enum FitnessGoal
 {
     MuscleGain,
@@ -9,7 +8,7 @@ public enum FitnessGoal
     GeneralFitness
 }
 
-/// <summary>Self-reported / assessed training experience.</summary>
+
 public enum FitnessLevel
 {
     Beginner,
@@ -17,29 +16,29 @@ public enum FitnessLevel
     Advanced
 }
 
-/// <summary>Weekly training split used to generate a WorkoutPlan.</summary>
+
 public enum SplitType
 {
-    /// <summary>3 days/week - full body each session.</summary>
+
     FullBody,
 
-    /// <summary>4 days/week - alternating upper/lower.</summary>
+    
     UpperLower,
 
-    /// <summary>6 days/week - push / pull / legs.</summary>
+  
     PushPullLegs
 }
 
-/// <summary>Rep-range / intensity style driving set & rep generation.</summary>
+
 public enum TrainingStyle
 {
-    /// <summary>3-5 reps, heavy.</summary>
+   
     Strength,
 
-    /// <summary>8-12 reps, moderate.</summary>
+  
     Hypertrophy,
 
-    /// <summary>15+ reps, light and fast - conditioning focus.</summary>
+
     Circuit
 }
 

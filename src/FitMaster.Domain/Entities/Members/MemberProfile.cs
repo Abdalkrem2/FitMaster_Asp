@@ -3,16 +3,13 @@ using FitMaster.Domain.Enums;
 
 namespace FitMaster.Domain.Entities.Members;
 
-/// <summary>
-/// Fitness & health profile for a member. Shares its primary key with the
-/// owning <see cref="User"/> (one-to-one, "MapsId" relationship in the original schema).
-/// </summary>
+
 public class MemberProfile
 {
-    /// <summary>Same value as the owning User's Id.</summary>
     public long MemberId { get; set; }
 
     public User Member { get; set; } = null!;
+
 
     public required FitnessGoal Goal { get; set; }
 

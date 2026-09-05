@@ -4,7 +4,6 @@ using FitMaster.Domain.Enums;
 
 namespace FitMaster.Domain.Entities.Memberships;
 
-/// <summary>A specific member's subscription to a Package for a given period.</summary>
 public class Membership : BaseEntity
 {
     public required long MemberId { get; set; }

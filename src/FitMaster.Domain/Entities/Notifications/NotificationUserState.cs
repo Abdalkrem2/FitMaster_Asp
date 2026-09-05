@@ -3,7 +3,7 @@ using FitMaster.Domain.Entities.Identity;
 
 namespace FitMaster.Domain.Entities.Notifications;
 
-/// <summary>Tracks whether a specific user has read/dismissed a given Notification.</summary>
+
 public class NotificationUserState : BaseEntity
 {
     public required long NotificationId { get; set; }
@@ -18,6 +18,6 @@ public class NotificationUserState : BaseEntity
 
     public bool Deleted { get; set; }
 
-    /// <summary>When this notification was assigned/surfaced to the user.</summary>
+
     public DateTime AssignedAt { get; set; }
 }
