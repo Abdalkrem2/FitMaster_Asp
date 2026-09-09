@@ -1,20 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <!-- Overrides a vulnerable transitive version pulled in indirectly by the EF Core
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<!-- Overrides a vulnerable transitive version pulled in indirectly by the EF Core
          packages above (CVE-2026-26171 / CVE-2026-33116 / CVE-2026-50648). -->
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
-  </ItemGroup>
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FitMaster.Application\FitMaster.Application.csproj" />
-    <ProjectReference Include="..\FitMaster.Domain\FitMaster.Domain.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FitMaster.Application\FitMaster.Application.csproj" />
+		<ProjectReference Include="..\FitMaster.Domain\FitMaster.Domain.csproj" />
+	</ItemGroup>
 
 </Project>
