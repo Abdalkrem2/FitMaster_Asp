@@ -14,8 +14,12 @@ public interface IExerciseSelector
     /// Selects up to <paramref name="exerciseCount"/> exercises for the day. Exercises
     /// whose primary target muscle is in <paramref name="injuryExcludedMuscleIds"/> are
     /// never selected; exercises where only a secondary muscle is excluded are
-    /// de-prioritized rather than dropped. Selected ids are added to
-    /// <paramref name="usedExerciseIds"/> so later days in the same plan don't repeat them.
+    /// de-prioritized rather than dropped. For Beginner members, exercises matching
+    /// <see cref="AdvancedMovementBlocklist"/> are excluded outright - the seeded catalog
+    /// currently has no real difficulty variety, so name-based filtering is the only
+    /// signal available to keep skill movements (planche push-ups, muscle-ups, ...) out
+    /// of a Beginner's plan. Selected ids are added to <paramref name="usedExerciseIds"/>
+    /// so later days in the same plan don't repeat them.
     /// </summary>
     IReadOnlyList<Guid> SelectForDay(
         DayTemplate day,
@@ -41,6 +45,7 @@ public class ExerciseSelector : IExerciseSelector
         var eligible = candidates
             .Where(c => !usedExerciseIds.Contains(c.ExerciseId))
             .Where(c => IsWithinDifficulty(c.Difficulty, fitnessLevel))
+            .Where(c => fitnessLevel != FitnessLevel.Beginner || !AdvancedMovementBlocklist.IsAdvancedMovement(c.Name))
             .Where(c => !HasExcludedMuscle(c, injuryExcludedMuscleIds, MuscleRole.Primary))
             .Select(c => new RankedCandidate(c, HasExcludedMuscle(c, injuryExcludedMuscleIds, MuscleRole.Secondary)))
             .ToList();

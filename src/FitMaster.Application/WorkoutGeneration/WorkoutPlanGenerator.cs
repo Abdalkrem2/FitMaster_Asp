@@ -122,6 +122,7 @@ public class WorkoutPlanGenerator(
                 e.Id,
                 e.DifficultyLevel,
                 Muscles = e.ExerciseMuscles.Select(em => new { em.MuscleId, em.Role }).ToList(),
+                Name = e.Translations.Where(t => t.Locale == "en").Select(t => t.Name).FirstOrDefault(),
             })
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -135,7 +136,8 @@ public class WorkoutPlanGenerator(
                         m.MuscleId,
                         muscleGroupByMuscleId.TryGetValue(m.MuscleId, out var group) ? group : null,
                         m.Role))
-                    .ToList()))
+                    .ToList(),
+                e.Name))
             .ToList();
     }
 }

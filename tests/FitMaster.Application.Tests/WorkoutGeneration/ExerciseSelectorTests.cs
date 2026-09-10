@@ -109,6 +109,30 @@ public class ExerciseSelectorTests
     }
 
     [Fact]
+    public void Blocks_a_named_advanced_movement_for_beginners_even_when_tagged_intermediate()
+    {
+        var pushDay = new DayTemplate("Push", [MuscleGroup.Chest]);
+        var plancheCandidate = BenchPressCandidate with { Name = "full planche push-up", Difficulty = DifficultyLevel.Intermediate };
+
+        var selected = _sut.SelectForDay(
+            pushDay, [plancheCandidate], FitnessLevel.Beginner, new HashSet<long>(), [], exerciseCount: 1);
+
+        Assert.Empty(selected);
+    }
+
+    [Fact]
+    public void Does_not_block_a_named_advanced_movement_for_non_beginners()
+    {
+        var pushDay = new DayTemplate("Push", [MuscleGroup.Chest]);
+        var plancheCandidate = BenchPressCandidate with { Name = "full planche push-up", Difficulty = DifficultyLevel.Intermediate };
+
+        var selected = _sut.SelectForDay(
+            pushDay, [plancheCandidate], FitnessLevel.Intermediate, new HashSet<long>(), [], exerciseCount: 1);
+
+        Assert.Contains(BenchPress, selected);
+    }
+
+    [Fact]
     public void Does_not_reselect_an_exercise_already_used_earlier_in_the_plan()
     {
         var usedExerciseIds = new HashSet<Guid> { Squat };
