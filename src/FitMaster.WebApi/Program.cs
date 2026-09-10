@@ -1,6 +1,7 @@
 using System.Text;
 using FitMaster.Application;
 using FitMaster.Infrastructure;
+using FitMaster.Infrastructure.Persistence.Seeding;
 using FitMaster.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -46,6 +47,10 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Bootstrap: ensure at least one Admin account exists (see AdminSeeder for
+// why this has no hardcoded fallback credentials).
+await app.Services.SeedAdminUserAsync();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler(); // must be first, so it wraps everything after it
