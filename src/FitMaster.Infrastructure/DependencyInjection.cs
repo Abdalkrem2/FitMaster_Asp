@@ -1,4 +1,5 @@
 using FitMaster.Application.Common.Interfaces;
+using FitMaster.Infrastructure.Identity;
 using FitMaster.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,14 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<FitMasterDbContext>());
+
+        // Identity / Auth
+        services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.AddSingleton<IPasswordHasher, PasswordHasherService>();
+        services.AddScoped<IJwtService, JwtService>();
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

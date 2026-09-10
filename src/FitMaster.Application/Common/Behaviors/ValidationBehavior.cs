@@ -4,12 +4,8 @@ using ValidationException = FitMaster.Application.Common.Exceptions.ValidationEx
 
 namespace FitMaster.Application.Common.Behaviors;
 
-/// <summary>
-/// Runs before every MediatR request handler. If any FluentValidation validator
-/// registered for this request type fails, the handler never runs - a
-/// <see cref="ValidationException"/> is thrown instead (caught by the WebApi's
-/// global exception handler and turned into a 400 response).
-/// </summary>
+
+
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

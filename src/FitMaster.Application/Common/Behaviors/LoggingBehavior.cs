@@ -4,11 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FitMaster.Application.Common.Behaviors;
 
-/// <summary>
-/// Logs every Command/Query as it runs, and emits a warning if it takes
-/// longer than <see cref="SlowRequestThresholdMs"/> - a cheap early signal for
-/// performance problems (e.g. a query missing an index) as the app grows.
-/// </summary>
 public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
