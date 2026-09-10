@@ -1,3 +1,4 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Domain.Entities.Memberships;
@@ -7,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Memberships.Commands.CreateMembership;
 
-public class CreateMembershipHandler(IApplicationDbContext db) : IRequestHandler<CreateMembershipCommand, Result<long>>
+public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
+    : IRequestHandler<CreateMembershipCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(CreateMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -48,6 +50,20 @@ public class CreateMembershipHandler(IApplicationDbContext db) : IRequestHandler
 
         db.Memberships.Add(membership);
         await db.SaveChangesAsync(cancellationToken);
+
+        db.Revenues.Add(new Revenue
+        {
+            MemberId = request.MemberId,
+            MembershipId = membership.Id,
+            CreatedById = currentUser.UserId!.Value,
+            Amount = membership.Price,
+            Description = $"Membership sale - {package.Name}",
+            CreatedAt = DateOnly.FromDateTime(now),
+            UpdatedAt = DateOnly.FromDateTime(now),
+        });
+        await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new MembershipCreatedEvent(membership.Id, currentUser.UserId!.Value), cancellationToken);
 
         return Result<long>.Success(membership.Id);
     }

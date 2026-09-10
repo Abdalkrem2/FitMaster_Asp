@@ -1,3 +1,4 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Domain.Entities.Identity;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Members.Commands.CreateMember;
 
-public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passwordHasher)
+public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passwordHasher, ICurrentUserService currentUser, IPublisher publisher)
     : IRequestHandler<CreateMemberCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(CreateMemberCommand request, CancellationToken cancellationToken)
@@ -62,6 +63,8 @@ public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passw
         db.MemberProfiles.Add(profile);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new MemberCreatedEvent(user.Id, currentUser.UserId!.Value), cancellationToken);
 
         return Result<long>.Success(user.Id);
     }

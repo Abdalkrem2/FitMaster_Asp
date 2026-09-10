@@ -1,3 +1,4 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Domain.Entities.Identity;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Users.Commands.CreateStaffUser;
 
-public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher passwordHasher)
+public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher passwordHasher, ICurrentUserService currentUser, IPublisher publisher)
     : IRequestHandler<CreateStaffUserCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(CreateStaffUserCommand request, CancellationToken cancellationToken)
@@ -38,6 +39,8 @@ public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher pa
 
         db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new StaffUserCreatedEvent(user.Id, currentUser.UserId!.Value), cancellationToken);
 
         return Result<long>.Success(user.Id);
     }
