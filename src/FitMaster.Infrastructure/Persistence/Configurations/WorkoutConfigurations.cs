@@ -5,6 +5,21 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FitMaster.Infrastructure.Persistence.Configurations;
 
+public class InjuryMuscleExclusionConfiguration : IEntityTypeConfiguration<InjuryMuscleExclusion>
+{
+    public void Configure(EntityTypeBuilder<InjuryMuscleExclusion> builder)
+    {
+        builder.ToTable("injury_muscle_exclusions");
+        builder.HasKey(x => new { x.InjuryType, x.MuscleId });
+
+        builder.Property(x => x.InjuryType).HasColumnName("injury_type").HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.MuscleId).HasColumnName("muscle_id");
+
+        builder.HasOne(x => x.Muscle).WithMany()
+            .HasForeignKey(x => x.MuscleId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 public class WorkoutPlanConfiguration : IEntityTypeConfiguration<WorkoutPlan>
 {
     public void Configure(EntityTypeBuilder<WorkoutPlan> builder)

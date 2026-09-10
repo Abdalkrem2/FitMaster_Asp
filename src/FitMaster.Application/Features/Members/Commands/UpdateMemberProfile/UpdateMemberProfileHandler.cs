@@ -21,6 +21,7 @@ public class UpdateMemberProfileHandler(IApplicationDbContext db)
         profile.Goal = request.Goal;
         profile.FitnessLevel = request.FitnessLevel;
         profile.SplitType = request.SplitType;
+        profile.TrainingStyle = request.TrainingStyle;
         profile.Injuries = request.Injuries ?? [];
         profile.Weight = request.Weight;
         profile.Height = request.Height;

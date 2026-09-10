@@ -16,6 +16,7 @@ public record CreateMemberCommand(
     FitnessGoal Goal,
     FitnessLevel FitnessLevel,
     SplitType SplitType,
+    TrainingStyle? TrainingStyle,
     List<InjuryType>? Injuries,
     double? Weight,
     double? Height,

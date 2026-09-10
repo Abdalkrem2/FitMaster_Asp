@@ -1,5 +1,6 @@
 using System.Reflection;
 using FitMaster.Application.Common.Behaviors;
+using FitMaster.Application.WorkoutGeneration;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +26,12 @@ public static class DependencyInjection
 
         // Registers every AbstractValidator<T> found in this assembly.
         services.AddValidatorsFromAssembly(assembly);
+
+        // Workout generation - rule-based, independently testable components (Phase 6).
+        services.AddScoped<IDaySplitter, DaySplitter>();
+        services.AddScoped<IExerciseSelector, ExerciseSelector>();
+        services.AddScoped<IVolumePrescriber, VolumePrescriber>();
+        services.AddScoped<IWorkoutPlanGenerator, WorkoutPlanGenerator>();
 
         return services;
     }
