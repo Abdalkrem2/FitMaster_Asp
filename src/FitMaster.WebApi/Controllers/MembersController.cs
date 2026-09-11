@@ -1,6 +1,7 @@
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Features.Members.Commands.ChangePassword;
 using FitMaster.Application.Features.Members.Commands.CreateMember;
+using FitMaster.Application.Features.Members.Commands.DeleteMember;
 using FitMaster.Application.Features.Members.Commands.UpdateMemberIdentity;
 using FitMaster.Application.Features.Members.Commands.UpdateMemberProfile;
 using FitMaster.Application.Features.Members.Commands.UploadProfilePicture;
@@ -98,5 +99,13 @@ public class MembersController(ISender sender, ICurrentUserService currentUser) 
         var result = await sender.Send(
             new UploadProfilePictureCommand(memberId, stream.ToArray(), file.FileName, file.ContentType), ct);
         return result.Succeeded ? Ok(new { url = result.Value }) : BadRequest(result.Errors);
+    }
+
+    [HttpDelete("{memberId:long}")]
+    [Authorize(Roles = "Admin,Employee")]
+    public async Task<IActionResult> Delete(long memberId, CancellationToken ct)
+    {
+        var result = await sender.Send(new DeleteMemberCommand(memberId), ct);
+        return result.Succeeded ? NoContent() : BadRequest(result.Errors);
     }
 }
