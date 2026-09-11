@@ -1,6 +1,7 @@
 using FitMaster.Application.Common.Exceptions;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Domain.Entities.Members;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,18 @@ public class GetMemberByIdHandler(IApplicationDbContext db) : IRequestHandler<Ge
                 p.Member.Phone,
                 p.Member.FullName,
                 p.Member.ProfilePicture,
+                p.Member.Gender,
+                p.Member.CreatedAt,
+                p.Member.Memberships
+                    .Where(m => m.Status == MembershipStatus.Active)
+                    .OrderByDescending(m => m.EndDate)
+                    .Select(m => (decimal?)m.Debt)
+                    .FirstOrDefault(),
+                p.Member.Memberships
+                    .Where(m => m.Status == MembershipStatus.Active)
+                    .OrderByDescending(m => m.EndDate)
+                    .Select(m => (DateOnly?)m.EndDate)
+                    .FirstOrDefault(),
                 p.Goal,
                 p.FitnessLevel,
                 p.SplitType,

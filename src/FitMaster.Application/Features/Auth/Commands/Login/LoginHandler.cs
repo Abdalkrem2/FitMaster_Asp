@@ -25,6 +25,10 @@ public class LoginHandler(
         {
             return Result<LoginResponse>.Failure(InvalidCredentialsMessage);
         }
+        if (!user.IsActivated)
+        {
+            return Result<LoginResponse>.Failure("This account has been deactivated.");
+        }
 
         var token = jwtService.GenerateToken(user);
         var roles = user.Roles.Select(r => r.RoleName).ToList();
