@@ -1,8 +1,10 @@
+using FitMaster.Domain.Enums;
+
 namespace FitMaster.Application.Features.Auth.Commands.Login;
 
 public record LoginResponse(
     long UserId,
     string FullName,
-    IReadOnlyList<string> Roles,
+    IReadOnlyList<AppRole> Roles,
     string Token,
     DateTime ExpiresAtUtc);

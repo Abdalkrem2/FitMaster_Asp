@@ -13,4 +13,5 @@ public record CreateStaffUserCommand(
     string Phone,
     string Password,
     string FullName,
+    string? Gender,
     AppRole Role) : IRequest<Result<long>>;

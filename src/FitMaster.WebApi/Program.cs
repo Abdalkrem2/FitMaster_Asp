@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FitMaster.Application;
 using FitMaster.Infrastructure;
 using FitMaster.Infrastructure.Persistence.Seeding;
@@ -6,6 +8,9 @@ using FitMaster.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+
+// Community license: free for organizations with less than $1M annual revenue.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -62,7 +67,11 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
-builder.Services.AddControllers();
+// Enums serialize as SCREAMING_SNAKE_CASE strings (e.g. "MUSCLE_GAIN"), matching the
+// frontend's existing types - not the default plain-integer System.Text.Json behavior.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseUpper)));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

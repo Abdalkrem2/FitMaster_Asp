@@ -1,6 +1,7 @@
 using System.Reflection;
 using FitMaster.Application.Common.Behaviors;
 using FitMaster.Application.NutritionGeneration;
+using FitMaster.Application.Pdf;
 using FitMaster.Application.WorkoutGeneration;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,10 @@ public static class DependencyInjection
         services.AddScoped<INutritionPromptBuilder, NutritionPromptBuilder>();
         services.AddScoped<IMealPlanResponseParser, MealPlanResponseParser>();
         services.AddScoped<INutritionPlanGenerator, NutritionPlanGenerator>();
+
+        // PDF export (frontend integration pass) - QuestPDF Community license, see Program.cs.
+        services.AddScoped<IWorkoutPlanPdfGenerator, WorkoutPlanPdfGenerator>();
+        services.AddScoped<INutritionPlanPdfGenerator, NutritionPlanPdfGenerator>();
 
         return services;
     }
