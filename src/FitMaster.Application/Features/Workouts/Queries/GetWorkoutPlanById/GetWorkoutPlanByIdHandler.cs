@@ -1,6 +1,7 @@
 using FitMaster.Application.Common.Exceptions;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Domain.Entities.Workouts;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,14 @@ public class GetWorkoutPlanByIdHandler(IApplicationDbContext db) : IRequestHandl
                                     .Where(t => t.Locale == "en")
                                     .Select(t => t.Name)
                                     .FirstOrDefault(),
+                                e.Exercise.DifficultyLevel,
+                                e.Exercise.ExerciseMuscles
+                                    .Where(em => em.Role == MuscleRole.Primary)
+                                    .Select(em => em.Muscle.Name)
+                                    .FirstOrDefault(),
+                                e.Exercise.ExerciseMuscles.Select(em => em.Muscle.Name).ToList(),
+                                e.Exercise.ExerciseEquipments.Select(ee => ee.Equipment.Name).ToList(),
+                                e.Exercise.Media.Select(m => m.MediaAsset.Url).FirstOrDefault(),
                                 e.OrderIndex,
                                 e.Sets,
                                 e.Reps,

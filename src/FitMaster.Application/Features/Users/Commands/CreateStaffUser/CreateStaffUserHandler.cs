@@ -30,6 +30,7 @@ public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher pa
             Phone = request.Phone,
             PasswordHash = passwordHasher.Hash(request.Password),
             FullName = request.FullName,
+            Gender = request.Gender,
             IsActivated = true,
             Deleted = false,
             CreatedAt = DateTime.UtcNow,

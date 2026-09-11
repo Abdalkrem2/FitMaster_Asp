@@ -27,9 +27,9 @@ public class LoginHandler(
         }
 
         var token = jwtService.GenerateToken(user);
-        var roleNames = user.Roles.Select(r => r.RoleName.ToString()).ToList();
+        var roles = user.Roles.Select(r => r.RoleName).ToList();
 
         return Result<LoginResponse>.Success(
-            new LoginResponse(user.Id, user.FullName, roleNames, token.Token, token.ExpiresAtUtc));
+            new LoginResponse(user.Id, user.FullName, roles, token.Token, token.ExpiresAtUtc));
     }
 }
