@@ -856,6 +856,24 @@ namespace FitMaster.Infrastructure.Migrations
                     b.ToTable("nutrition_recipe_steps", (string)null);
                 });
 
+            modelBuilder.Entity("FitMaster.Domain.Entities.Workouts.InjuryMuscleExclusion", b =>
+                {
+                    b.Property<string>("InjuryType")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("injury_type");
+
+                    b.Property<long>("MuscleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("muscle_id");
+
+                    b.HasKey("InjuryType", "MuscleId");
+
+                    b.HasIndex("MuscleId");
+
+                    b.ToTable("injury_muscle_exclusions", (string)null);
+                });
+
             modelBuilder.Entity("FitMaster.Domain.Entities.Workouts.WorkoutDay", b =>
                 {
                     b.Property<long>("Id")
@@ -1229,6 +1247,17 @@ namespace FitMaster.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Meal");
+                });
+
+            modelBuilder.Entity("FitMaster.Domain.Entities.Workouts.InjuryMuscleExclusion", b =>
+                {
+                    b.HasOne("FitMaster.Domain.Entities.Exercises.Muscle", "Muscle")
+                        .WithMany()
+                        .HasForeignKey("MuscleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Muscle");
                 });
 
             modelBuilder.Entity("FitMaster.Domain.Entities.Workouts.WorkoutDay", b =>

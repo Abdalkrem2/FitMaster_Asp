@@ -34,6 +34,7 @@ public interface IApplicationDbContext
     DbSet<WorkoutPlan> WorkoutPlans { get; }
     DbSet<WorkoutDay> WorkoutDays { get; }
     DbSet<WorkoutExercise> WorkoutExercises { get; }
+    DbSet<InjuryMuscleExclusion> InjuryMuscleExclusions { get; }
 
     DbSet<NutritionPlan> NutritionPlans { get; }
     DbSet<NutritionMeal> NutritionMeals { get; }

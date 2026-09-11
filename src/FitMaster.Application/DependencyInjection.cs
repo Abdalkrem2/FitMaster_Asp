@@ -1,5 +1,7 @@
 using System.Reflection;
 using FitMaster.Application.Common.Behaviors;
+using FitMaster.Application.NutritionGeneration;
+using FitMaster.Application.WorkoutGeneration;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +27,19 @@ public static class DependencyInjection
 
         // Registers every AbstractValidator<T> found in this assembly.
         services.AddValidatorsFromAssembly(assembly);
+
+        // Workout generation - rule-based, independently testable components (Phase 6).
+        services.AddScoped<IDaySplitter, DaySplitter>();
+        services.AddScoped<IExerciseSelector, ExerciseSelector>();
+        services.AddScoped<IVolumePrescriber, VolumePrescriber>();
+        services.AddScoped<IWorkoutPlanGenerator, WorkoutPlanGenerator>();
+
+        // Nutrition generation (Phase 7) - deterministic calorie/macro calc + AI meal
+        // content (IGroqMealPlanClient is implemented in Infrastructure).
+        services.AddScoped<ICalorieCalculator, CalorieCalculator>();
+        services.AddScoped<INutritionPromptBuilder, NutritionPromptBuilder>();
+        services.AddScoped<IMealPlanResponseParser, MealPlanResponseParser>();
+        services.AddScoped<INutritionPlanGenerator, NutritionPlanGenerator>();
 
         return services;
     }

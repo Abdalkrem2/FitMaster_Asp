@@ -33,6 +33,7 @@ public class FitMasterDbContext(DbContextOptions<FitMasterDbContext> options)
     public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
     public DbSet<WorkoutDay> WorkoutDays => Set<WorkoutDay>();
     public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();
+    public DbSet<InjuryMuscleExclusion> InjuryMuscleExclusions => Set<InjuryMuscleExclusion>();
 
     public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
     public DbSet<NutritionMeal> NutritionMeals => Set<NutritionMeal>();
