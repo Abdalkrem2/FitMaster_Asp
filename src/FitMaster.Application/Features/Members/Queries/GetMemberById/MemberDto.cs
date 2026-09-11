@@ -6,6 +6,7 @@ public record MemberDto(
     long MemberId,
     string Phone,
     string FullName,
+    string? ProfilePicture,
     FitnessGoal Goal,
     FitnessLevel FitnessLevel,
     SplitType SplitType,

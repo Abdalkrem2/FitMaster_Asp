@@ -1,5 +1,6 @@
 using FitMaster.Application.Features.Members.Commands.CreateMember;
 using FitMaster.Application.Features.Members.Commands.UpdateMemberProfile;
+using FitMaster.Application.Features.Members.Commands.UploadProfilePicture;
 using FitMaster.Application.Features.Members.Queries.GetMemberById;
 using FitMaster.Application.Features.Members.Queries.GetMembersList;
 using MediatR;
@@ -36,5 +37,16 @@ public class MembersController(ISender sender) : ControllerBase
         if (memberId != command.MemberId) return BadRequest("Route id and body id must match.");
         var result = await sender.Send(command, ct);
         return result.Succeeded ? NoContent() : BadRequest(result.Errors);
+    }
+
+    [HttpPost("{memberId:long}/profile-picture")]
+    public async Task<IActionResult> UploadProfilePicture(long memberId, IFormFile file, CancellationToken ct)
+    {
+        await using var stream = new MemoryStream();
+        await file.CopyToAsync(stream, ct);
+
+        var result = await sender.Send(
+            new UploadProfilePictureCommand(memberId, stream.ToArray(), file.FileName, file.ContentType), ct);
+        return result.Succeeded ? Ok(new { url = result.Value }) : BadRequest(result.Errors);
     }
 }

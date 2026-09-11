@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.NutritionGeneration;
 using FitMaster.Infrastructure.Ai;
+using FitMaster.Infrastructure.Files;
 using FitMaster.Infrastructure.Identity;
 using FitMaster.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,10 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", groqSettings.ApiKey);
             client.Timeout = TimeSpan.FromSeconds(60);
         });
+
+        // File uploads (Phase 9) - same lazy-credential-check pattern as Groq above.
+        services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
         return services;
     }

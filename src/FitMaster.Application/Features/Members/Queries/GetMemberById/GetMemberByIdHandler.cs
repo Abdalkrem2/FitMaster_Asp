@@ -16,6 +16,7 @@ public class GetMemberByIdHandler(IApplicationDbContext db) : IRequestHandler<Ge
                 p.MemberId,
                 p.Member.Phone,
                 p.Member.FullName,
+                p.Member.ProfilePicture,
                 p.Goal,
                 p.FitnessLevel,
                 p.SplitType,
