@@ -18,6 +18,8 @@ import {
   Heart,
   Droplets,
   ActivitySquare,
+  Building2,
+  PersonStanding,
 } from "lucide-react";
 import { memberService } from "../services/memberService";
 import type {
@@ -25,6 +27,7 @@ import type {
   FitnessLevel,
   TrainingStyle,
   SplitType,
+  EquipmentPreference,
   InjuryType,
   AllergyType,
 } from "../types/member";
@@ -34,6 +37,7 @@ interface OnboardingData {
   fitnessLevel?: FitnessLevel;
   trainingStyle?: TrainingStyle;
   splitType?: SplitType;
+  equipmentPreference?: EquipmentPreference;
   daysPerWeek: number;
   weight?: number;
   height?: number;
@@ -80,13 +84,14 @@ const splitTypes: {
   },
 ];
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const steps = [
   { label: "Your Goal", desc: "What do you want to achieve?" },
   { label: "Fitness Level", desc: "How experienced are you?" },
   { label: "Training Style", desc: "How do you like to train?" },
   { label: "Split Type", desc: "Choose your training split" },
+  { label: "Equipment", desc: "Gym or bodyweight only?" },
   { label: "Body Info", desc: "Optional measurements" },
   { label: "Injuries", desc: "Areas to work around" },
   { label: "Health & Diet", desc: "Conditions & allergies" },
@@ -181,6 +186,26 @@ const styles: {
   },
 ];
 
+const equipmentOptions: {
+  value: EquipmentPreference;
+  label: string;
+  desc: string;
+  icon: typeof Building2;
+}[] = [
+  {
+    value: "GYM",
+    label: "Gym Equipment",
+    desc: "Barbells, machines, dumbbells & more",
+    icon: Building2,
+  },
+  {
+    value: "BODYWEIGHT",
+    label: "Bodyweight Only",
+    desc: "No equipment — train anywhere",
+    icon: PersonStanding,
+  },
+];
+
 const injuryOptions: InjuryType[] = [
   "KNEE",
   "SHOULDER",
@@ -233,6 +258,7 @@ export default function MemberOnboarding() {
     if (step === 2) return !!data.fitnessLevel;
     if (step === 3) return !!data.trainingStyle;
     if (step === 4) return !!data.splitType;
+    if (step === 5) return !!data.equipmentPreference;
     return true;
   };
 
@@ -249,6 +275,7 @@ export default function MemberOnboarding() {
         fitnessLevel: data.fitnessLevel!,
         trainingStyle: data.trainingStyle!,
         splitType: data.splitType!,
+        equipmentPreference: data.equipmentPreference!,
         injuries:
           data.injuries && data.injuries.length > 0 ? data.injuries : null,
         weight: data.weight ?? null,
@@ -406,7 +433,7 @@ export default function MemberOnboarding() {
                     </span>
                   </h1>
                   <p className="text-slate-400 text-lg leading-relaxed max-w-lg mx-auto">
-                    Answer 7 quick questions and we'll build a personalised
+                    Answer 8 quick questions and we'll build a personalised
                     fitness plan designed just for you.
                   </p>
                 </div>
@@ -650,12 +677,63 @@ export default function MemberOnboarding() {
               </div>
             )}
 
-            {/* Step 5: Body Metrics */}
+            {/* Step 5: Equipment Preference */}
             {step === 5 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-400">
                 <div>
                   <p className="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-2">
-                    Step 5 of 7
+                    Step 5 of 8
+                  </p>
+                  <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-800">
+                    How do you want to train?
+                  </h2>
+                  <p className="text-slate-400 mt-2">
+                    We'll only pick exercises that match your setup.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  {equipmentOptions.map(({ value, label, desc, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => set("equipmentPreference", value)}
+                      className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 text-left transition-all duration-200 bg-white ${
+                        data.equipmentPreference === value
+                          ? "border-indigo-500 ring-1 ring-indigo-500/20 shadow-md"
+                          : "border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                            data.equipmentPreference === value
+                              ? "bg-indigo-500 text-white"
+                              : "bg-slate-100 text-slate-400"
+                          }`}
+                        >
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-base">
+                            {label}
+                          </p>
+                          <p className="text-sm text-slate-400">{desc}</p>
+                        </div>
+                      </div>
+                      {data.equipmentPreference === value && (
+                        <CheckCircle2 className="w-5 h-5 text-indigo-500 shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Body Metrics */}
+            {step === 6 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-400">
+                <div>
+                  <p className="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-2">
+                    Step 6 of 8
                   </p>
                   <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-800">
                     Your body metrics
@@ -740,12 +818,12 @@ export default function MemberOnboarding() {
               </div>
             )}
 
-            {/* Step 6: Injuries + Finish */}
-            {step === 6 && (
+            {/* Step 7: Injuries + Finish */}
+            {step === 7 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-400">
                 <div>
                   <p className="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-2">
-                    Step 6 of 7
+                    Step 7 of 8
                   </p>
                   <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-800">
                     Any injuries?
@@ -819,12 +897,12 @@ export default function MemberOnboarding() {
               </div>
             )}
 
-            {/* Step 7: Health Conditions & Allergies */}
-            {step === 7 && (
+            {/* Step 8: Health Conditions & Allergies */}
+            {step === 8 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-400">
                 <div>
                   <p className="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-2">
-                    Step 7 of 7 · Final Step
+                    Step 8 of 8 · Final Step
                   </p>
                   <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-800">
                     Any health conditions?
@@ -980,7 +1058,7 @@ export default function MemberOnboarding() {
             )}
 
             {/* Back / Next */}
-            {step >= 1 && step < 7 && (
+            {step >= 1 && step < 8 && (
               <div className="mt-8 flex items-center justify-between gap-4">
                 <button
                   onClick={() => setStep((s) => s - 1)}

@@ -20,6 +20,8 @@ import {
   Heart,
   ActivitySquare,
   Utensils,
+  Building2,
+  PersonStanding,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { memberService } from "../services/memberService";
@@ -30,6 +32,7 @@ import type {
   InjuryType,
   TrainingStyle,
   SplitType,
+  EquipmentPreference,
   UpdateMemberProfileRequest,
   MemberDetails,
   AllergyType,
@@ -84,6 +87,26 @@ const trainingStyles: { value: TrainingStyle; label: string; desc: string }[] =
     { value: "HYPERTROPHY", label: "Hypertrophy", desc: "Muscle building" },
     { value: "CIRCUIT", label: "Circuit", desc: "High intensity" },
   ];
+
+const equipmentOptions: {
+  value: EquipmentPreference;
+  label: string;
+  desc: string;
+  icon: typeof Building2;
+}[] = [
+  {
+    value: "GYM",
+    label: "Gym Equipment",
+    desc: "Barbells, machines, dumbbells & more",
+    icon: Building2,
+  },
+  {
+    value: "BODYWEIGHT",
+    label: "Bodyweight Only",
+    desc: "No equipment — train anywhere",
+    icon: PersonStanding,
+  },
+];
 
 const injuryOptions: InjuryType[] = [
   "KNEE",
@@ -157,6 +180,7 @@ const MemberProfile = () => {
             height: undefined,
             age: undefined,
             trainingStyle: "STRENGTH",
+            equipmentPreference: "GYM",
             hasDiabetes: false,
             hasHeartConditions: false,
             hasHypertension: false,
@@ -238,6 +262,7 @@ const MemberProfile = () => {
       goal: profile.goal,
       fitnessLevel: profile.fitnessLevel,
       splitType: profile.splitType ?? "FULL_BODY",
+      equipmentPreference: profile.equipmentPreference ?? "GYM",
       injuries:
         profile.injuries && profile.injuries.length > 0
           ? profile.injuries
@@ -277,6 +302,8 @@ const MemberProfile = () => {
     const levelInfo = fitnessLevels.find(l => l.value === profile?.fitnessLevel);
     const styleInfo = trainingStyles.find(s => s.value === profile?.trainingStyle);
     const splitInfo = splitTypes.find(s => s.value === profile?.splitType);
+    const equipmentInfo = equipmentOptions.find(e => e.value === profile?.equipmentPreference);
+    const EquipmentIcon = equipmentInfo?.icon || Building2;
 
     return (
       <div className="space-y-6 animate-in fade-in zoom-in duration-300">
@@ -343,11 +370,18 @@ const MemberProfile = () => {
           </div>
 
           {/* Training Split */}
-          <div className="col-span-2 lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 text-center">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 text-center">
             <LayoutGrid className="w-6 h-6 text-sky-500 mb-1" />
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Training Split</p>
             <p className="text-lg sm:text-xl font-bold text-slate-800">{splitInfo?.label || "Not Set"}</p>
             {splitInfo && <p className="text-sm text-slate-500">{splitInfo.desc}</p>}
+          </div>
+
+          {/* Equipment Preference */}
+          <div className="col-span-2 lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 text-center">
+            <EquipmentIcon className="w-6 h-6 text-indigo-500 mb-1" />
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Equipment</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-800">{equipmentInfo?.label || "Not Set"}</p>
           </div>
 
           {/* Injuries */}
@@ -694,6 +728,51 @@ const MemberProfile = () => {
                       <CheckCircle2 className="w-4 h-4 text-indigo-500" />
                     )}
                   </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ─── Equipment Preference ─── */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center">
+                <Building2 className="w-3.5 h-3.5 text-sky-500" />
+              </div>
+              <h2 className="text-sm font-semibold text-slate-700">
+                Equipment Preference
+              </h2>
+            </div>
+            <div className="p-6 space-y-3">
+              {equipmentOptions.map(({ value, label, desc, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => handleChange("equipmentPreference", value)}
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all duration-200 bg-white ${profile?.equipmentPreference === value
+                    ? "border-indigo-500 ring-1 ring-indigo-500/20 shadow-md"
+                    : "border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${profile?.equipmentPreference === value
+                        ? "bg-indigo-500 text-white"
+                        : "bg-slate-100 text-slate-400"
+                        }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">
+                        {label}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                  {profile?.equipmentPreference === value && (
+                    <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                  )}
                 </button>
               ))}
             </div>

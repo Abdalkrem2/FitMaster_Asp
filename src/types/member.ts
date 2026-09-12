@@ -23,6 +23,8 @@ export type SplitType = "FULL_BODY" | "UPPER_LOWER" | "PUSH_PULL_LEGS";
 
 export type TrainingStyle = "STRENGTH" | "HYPERTROPHY" | "CIRCUIT";
 
+export type EquipmentPreference = "GYM" | "BODYWEIGHT";
+
 export type AllergyType =
   | "GLUTEN"
   | "LACTOSE"
@@ -40,6 +42,7 @@ export interface MemberProfile {
   age?: number;
   trainingStyle?: TrainingStyle;
   splitType?: SplitType;
+  equipmentPreference?: EquipmentPreference;
   hasDiabetes?: boolean;
   hasHeartConditions?: boolean;
   hasHypertension?: boolean;
@@ -71,6 +74,7 @@ export interface MemberDetails {
   fitnessLevel: FitnessLevel;
   splitType: SplitType;
   trainingStyle?: TrainingStyle;
+  equipmentPreference: EquipmentPreference;
   injuries: InjuryType[];
   weight?: number;
   height?: number;
@@ -90,6 +94,7 @@ export interface CreateMemberRequest {
   fitnessLevel: FitnessLevel;
   splitType: SplitType;
   trainingStyle?: TrainingStyle;
+  equipmentPreference?: EquipmentPreference;
   injuries?: InjuryType[];
   weight?: number;
   height?: number;
@@ -114,6 +119,7 @@ export interface UpdateMemberProfileRequest {
   fitnessLevel: FitnessLevel;
   splitType: SplitType;
   trainingStyle?: TrainingStyle;
+  equipmentPreference: EquipmentPreference;
   injuries?: InjuryType[] | null;
   weight?: number | null;
   height?: number | null;
