@@ -36,6 +36,7 @@ public class GetMemberByIdHandler(IApplicationDbContext db) : IRequestHandler<Ge
                 p.FitnessLevel,
                 p.SplitType,
                 p.TrainingStyle,
+                p.EquipmentPreference,
                 p.Injuries,
                 p.Weight,
                 p.Height,

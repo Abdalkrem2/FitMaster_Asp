@@ -10,7 +10,12 @@ public record MuscleTarget(long MuscleId, MuscleGroup? Group, MuscleRole Role);
 /// used by the generator - deliberately free of EF Core so <see cref="IExerciseSelector"/>
 /// stays unit-testable without a database.
 /// </summary>
-public record ExerciseCandidate(Guid ExerciseId, DifficultyLevel? Difficulty, IReadOnlyList<MuscleTarget> Targets, string? Name = null)
+public record ExerciseCandidate(
+    Guid ExerciseId,
+    DifficultyLevel? Difficulty,
+    IReadOnlyList<MuscleTarget> Targets,
+    string? Name = null,
+    bool RequiresEquipment = false)
 {
     /// <summary>How many distinct muscles this exercise loads (Primary + Secondary) - the
     /// compound/isolation signal: 4+ reads as a compound movement, fewer as isolation.</summary>

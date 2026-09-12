@@ -17,6 +17,7 @@ public class GetMyProfileHandler(IApplicationDbContext db) : IRequestHandler<Get
                 p.FitnessLevel,
                 p.SplitType,
                 p.TrainingStyle,
+                p.EquipmentPreference,
                 p.Injuries,
                 p.Weight,
                 p.Height,

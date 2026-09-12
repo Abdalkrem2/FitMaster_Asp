@@ -53,6 +53,7 @@ public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passw
             FitnessLevel = request.FitnessLevel,
             SplitType = request.SplitType,
             TrainingStyle = request.TrainingStyle,
+            EquipmentPreference = request.EquipmentPreference ?? EquipmentPreference.Gym,
             Injuries = request.Injuries ?? [],
             Weight = request.Weight,
             Height = request.Height,

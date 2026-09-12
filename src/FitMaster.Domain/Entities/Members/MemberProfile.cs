@@ -19,6 +19,10 @@ public class MemberProfile
 
     public TrainingStyle? TrainingStyle { get; set; }
 
+    // Existing members without this set default to Gym - the assumption the workout
+    // generator has effectively been using all along (no equipment filtering at all).
+    public EquipmentPreference EquipmentPreference { get; set; } = EquipmentPreference.Gym;
+
     public List<InjuryType> Injuries { get; set; } = new();
 
     // --- Nutrition-relevant health data --------------------------------------

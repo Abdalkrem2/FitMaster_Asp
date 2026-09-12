@@ -73,3 +73,14 @@ public enum MemberStatus
     Active,
     Inactive
 }
+
+/// <summary>
+/// Whether a member trains with gym equipment or bodyweight only. Drives exercise
+/// selection in the workout generator - Bodyweight excludes any exercise with a
+/// required piece of equipment (see ExerciseEquipment.IsRequired).
+/// </summary>
+public enum EquipmentPreference
+{
+    Gym,
+    Bodyweight
+}

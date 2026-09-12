@@ -15,6 +15,7 @@ public record MemberDto(
     FitnessLevel FitnessLevel,
     SplitType SplitType,
     TrainingStyle? TrainingStyle,
+    EquipmentPreference EquipmentPreference,
     List<InjuryType> Injuries,
     double? Weight,
     double? Height,

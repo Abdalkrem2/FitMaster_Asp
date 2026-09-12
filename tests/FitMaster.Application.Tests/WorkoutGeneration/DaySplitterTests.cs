@@ -78,4 +78,44 @@ public class DaySplitterTests
             Assert.Contains(MuscleGroup.Glutes, d.TargetMuscleGroups);
         });
     }
+
+    [Fact]
+    public void Upper_day_weights_chest_and_back_higher_than_arms()
+    {
+        var upperDay = _sut.Split(SplitType.UpperLower).First(d => d.Label == "Upper Body");
+
+        Assert.NotNull(upperDay.MuscleGroupWeights);
+        var weights = upperDay.MuscleGroupWeights!;
+
+        Assert.True(weights[MuscleGroup.Chest] > weights[MuscleGroup.Biceps]);
+        Assert.True(weights[MuscleGroup.Back] > weights[MuscleGroup.Triceps]);
+    }
+
+    [Fact]
+    public void Pull_day_weights_back_higher_than_biceps()
+    {
+        var pullDay = _sut.Split(SplitType.PushPullLegs).First(d => d.Label == "Pull");
+
+        Assert.NotNull(pullDay.MuscleGroupWeights);
+        Assert.True(pullDay.MuscleGroupWeights![MuscleGroup.Back] > pullDay.MuscleGroupWeights[MuscleGroup.Biceps]);
+    }
+
+    [Fact]
+    public void Legs_day_weights_quadriceps_at_least_as_high_as_calves()
+    {
+        var legsDay = _sut.Split(SplitType.PushPullLegs).First(d => d.Label == "Legs");
+
+        Assert.NotNull(legsDay.MuscleGroupWeights);
+        Assert.True(legsDay.MuscleGroupWeights![MuscleGroup.Quadriceps] >= legsDay.MuscleGroupWeights[MuscleGroup.Calves]);
+    }
+
+    [Fact]
+    public void Every_split_types_day_templates_carry_muscle_group_weights()
+    {
+        foreach (var splitType in new[] { SplitType.FullBody, SplitType.UpperLower, SplitType.PushPullLegs })
+        {
+            var days = _sut.Split(splitType);
+            Assert.All(days, d => Assert.NotNull(d.MuscleGroupWeights));
+        }
+    }
 }

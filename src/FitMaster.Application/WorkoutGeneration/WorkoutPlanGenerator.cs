@@ -25,6 +25,14 @@ public class WorkoutPlanGenerator(
     IExerciseSelector exerciseSelector,
     IVolumePrescriber volumePrescriber) : IWorkoutPlanGenerator
 {
+    // The seeded catalog links every exercise to at least one "equipment" row, even
+    // bodyweight moves like push-ups - those are tagged with an equipment literally
+    // named "body weight" rather than left equipment-less. So "requires equipment" for
+    // the Bodyweight preference filter means "requires equipment other than the
+    // member's own body" - excluding this one name is what keeps that filter from
+    // wiping out the entire strength catalog.
+    private const string BodyweightEquipmentName = "body weight";
+
     public async Task<WorkoutPlan> GenerateAsync(MemberProfile profile, TrainingStyle trainingStyle, CancellationToken cancellationToken)
     {
         var muscleGroupByMuscleId = await LoadMuscleGroupsAsync(cancellationToken);
@@ -51,7 +59,8 @@ public class WorkoutPlanGenerator(
         foreach (var dayTemplate in days)
         {
             var selectedExerciseIds = exerciseSelector.SelectForDay(
-                dayTemplate, candidates, profile.FitnessLevel, injuryExcludedMuscleIds, usedExerciseIds, exerciseCount);
+                dayTemplate, candidates, profile.FitnessLevel, injuryExcludedMuscleIds, usedExerciseIds, exerciseCount,
+                profile.EquipmentPreference);
 
             var workoutDay = new WorkoutDay
             {
@@ -123,6 +132,7 @@ public class WorkoutPlanGenerator(
                 e.DifficultyLevel,
                 Muscles = e.ExerciseMuscles.Select(em => new { em.MuscleId, em.Role }).ToList(),
                 Name = e.Translations.Where(t => t.Locale == "en").Select(t => t.Name).FirstOrDefault(),
+                RequiresEquipment = e.ExerciseEquipments.Any(ee => ee.IsRequired && ee.Equipment.Name != BodyweightEquipmentName),
             })
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -137,7 +147,8 @@ public class WorkoutPlanGenerator(
                         muscleGroupByMuscleId.TryGetValue(m.MuscleId, out var group) ? group : null,
                         m.Role))
                     .ToList(),
-                e.Name))
+                e.Name,
+                e.RequiresEquipment))
             .ToList();
     }
 }

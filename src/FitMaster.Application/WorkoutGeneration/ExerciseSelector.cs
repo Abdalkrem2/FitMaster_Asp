@@ -3,23 +3,28 @@ using FitMaster.Domain.Enums;
 namespace FitMaster.Application.WorkoutGeneration;
 
 /// <summary>
-/// Picks exercises for one training day from a candidate pool: compound
-/// movements first (one per target muscle group), then isolation exercises
-/// to fill the remaining budget. Pure/data-only - no EF Core dependency, so
+/// Picks exercises for one training day from a candidate pool, following the day's
+/// muscle-group allocation (see <see cref="MuscleGroupAllocator"/>) so the result looks
+/// like a real, recognizable program structure - e.g. an Upper day getting noticeably
+/// more chest/back exercises than biceps/triceps - rather than a flat, unstructured
+/// round robin across every targeted muscle. Pure/data-only - no EF Core dependency, so
 /// it can be unit tested with hand-built <see cref="ExerciseCandidate"/> lists.
 /// </summary>
 public interface IExerciseSelector
 {
     /// <summary>
-    /// Selects up to <paramref name="exerciseCount"/> exercises for the day. Exercises
+    /// Selects up to <paramref name="exerciseCount"/> exercises for the day, one per
+    /// allocated muscle-group slot (compound movements preferred within each slot,
+    /// falling back to isolation if no compound is eligible for that group). Exercises
     /// whose primary target muscle is in <paramref name="injuryExcludedMuscleIds"/> are
     /// never selected; exercises where only a secondary muscle is excluded are
-    /// de-prioritized rather than dropped. For Beginner members, exercises matching
-    /// <see cref="AdvancedMovementBlocklist"/> are excluded outright - the seeded catalog
-    /// currently has no real difficulty variety, so name-based filtering is the only
-    /// signal available to keep skill movements (planche push-ups, muscle-ups, ...) out
-    /// of a Beginner's plan. Selected ids are added to <paramref name="usedExerciseIds"/>
-    /// so later days in the same plan don't repeat them.
+    /// de-prioritized rather than dropped. <see cref="AdvancedMovementBlocklist"/>
+    /// exercises are always excluded, for every fitness level - these are specialist
+    /// skill-training movements (planche, muscle-ups, ...) that don't belong in an
+    /// auto-generated plan regardless of how advanced the member is. When
+    /// <paramref name="equipmentPreference"/> is Bodyweight, any exercise with at least
+    /// one required piece of equipment is excluded too. Selected ids are added to
+    /// <paramref name="usedExerciseIds"/> so later days in the same plan don't repeat them.
     /// </summary>
     IReadOnlyList<Guid> SelectForDay(
         DayTemplate day,
@@ -27,7 +32,8 @@ public interface IExerciseSelector
         FitnessLevel fitnessLevel,
         IReadOnlySet<long> injuryExcludedMuscleIds,
         HashSet<Guid> usedExerciseIds,
-        int exerciseCount);
+        int exerciseCount,
+        EquipmentPreference equipmentPreference = EquipmentPreference.Gym);
 }
 
 public class ExerciseSelector : IExerciseSelector
@@ -40,50 +46,53 @@ public class ExerciseSelector : IExerciseSelector
         FitnessLevel fitnessLevel,
         IReadOnlySet<long> injuryExcludedMuscleIds,
         HashSet<Guid> usedExerciseIds,
-        int exerciseCount)
+        int exerciseCount,
+        EquipmentPreference equipmentPreference = EquipmentPreference.Gym)
     {
         var eligible = candidates
             .Where(c => !usedExerciseIds.Contains(c.ExerciseId))
             .Where(c => IsWithinDifficulty(c.Difficulty, fitnessLevel))
-            .Where(c => fitnessLevel != FitnessLevel.Beginner || !AdvancedMovementBlocklist.IsAdvancedMovement(c.Name))
+            .Where(c => !AdvancedMovementBlocklist.IsAdvancedMovement(c.Name))
+            .Where(c => equipmentPreference != EquipmentPreference.Bodyweight || !c.RequiresEquipment)
             .Where(c => !HasExcludedMuscle(c, injuryExcludedMuscleIds, MuscleRole.Primary))
             .Select(c => new RankedCandidate(c, HasExcludedMuscle(c, injuryExcludedMuscleIds, MuscleRole.Secondary)))
             .ToList();
 
         var selected = new List<Guid>();
 
-        // Compound movements first: one per target group, in day order.
-        foreach (var group in day.TargetMuscleGroups)
+        var allocation = MuscleGroupAllocator.Allocate(day.TargetMuscleGroups, day.MuscleGroupWeights, exerciseCount);
+
+        foreach (var group in allocation)
         {
             if (selected.Count >= exerciseCount) break;
 
             var pick = eligible
                 .Where(x => !selected.Contains(x.Candidate.ExerciseId))
                 .Where(x => TargetsGroupAsPrimary(x.Candidate, group))
-                .Where(x => x.Candidate.CompoundScore >= CompoundMuscleThreshold)
-                .OrderBy(x => x.InjuryPenalty)
+                .OrderByDescending(x => x.Candidate.CompoundScore >= CompoundMuscleThreshold)
+                .ThenBy(x => x.InjuryPenalty)
                 .ThenByDescending(x => x.Candidate.CompoundScore)
                 .FirstOrDefault();
 
             if (pick is not null) selected.Add(pick.Candidate.ExerciseId);
         }
 
-        // Fill remaining slots with isolation exercises, cycling through the target groups.
-        var attempts = 0;
-        var maxAttempts = day.TargetMuscleGroups.Count * Math.Max(exerciseCount, 1);
-        while (selected.Count < exerciseCount && attempts < maxAttempts && day.TargetMuscleGroups.Count > 0)
+        // Data-scarcity fallback: if a specific group ran out of eligible candidates
+        // before its allocated slots were used, spend the remaining budget on any other
+        // still-eligible candidate for the day rather than under-filling the session.
+        if (selected.Count < exerciseCount)
         {
-            var group = day.TargetMuscleGroups[attempts % day.TargetMuscleGroups.Count];
-            attempts++;
-
-            var pick = eligible
+            var backfill = eligible
                 .Where(x => !selected.Contains(x.Candidate.ExerciseId))
-                .Where(x => TargetsGroupAsPrimary(x.Candidate, group))
+                .Where(x => day.TargetMuscleGroups.Any(g => TargetsGroupAsPrimary(x.Candidate, g)))
                 .OrderBy(x => x.InjuryPenalty)
-                .ThenByDescending(x => x.Candidate.CompoundScore)
-                .FirstOrDefault();
+                .ThenByDescending(x => x.Candidate.CompoundScore);
 
-            if (pick is not null) selected.Add(pick.Candidate.ExerciseId);
+            foreach (var candidate in backfill)
+            {
+                if (selected.Count >= exerciseCount) break;
+                selected.Add(candidate.Candidate.ExerciseId);
+            }
         }
 
         foreach (var id in selected) usedExerciseIds.Add(id);
@@ -108,7 +117,9 @@ public class ExerciseSelector : IExerciseSelector
         // would leave Beginner members with zero eligible exercises. One tier of
         // leniency keeps Beginners out of Advanced-only work while staying usable
         // against today's data, and still tightens correctly once difficulty
-        // classification improves.
+        // classification improves. AdvancedMovementBlocklist (applied above,
+        // unconditionally) is what actually keeps true elite skill moves out for
+        // everyone - this tier check alone can't do that given the uniform data.
         return (int)exerciseDifficulty.Value <= (int)memberLevel + 1;
     }
 

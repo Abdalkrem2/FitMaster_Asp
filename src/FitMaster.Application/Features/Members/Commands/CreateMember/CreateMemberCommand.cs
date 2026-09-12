@@ -19,6 +19,7 @@ public record CreateMemberCommand(
     SplitType SplitType,
     TrainingStyle? TrainingStyle,
     List<InjuryType>? Injuries,
+    EquipmentPreference? EquipmentPreference,
     double? Weight,
     double? Height,
     int? Age,

@@ -20,6 +20,7 @@ public class MemberProfileConfiguration : IEntityTypeConfiguration<MemberProfile
         builder.Property(mp => mp.FitnessLevel).HasConversion<string>().HasMaxLength(30).IsRequired();
         builder.Property(mp => mp.SplitType).HasColumnName("split_type").HasConversion<string>().HasMaxLength(30).IsRequired();
         builder.Property(mp => mp.TrainingStyle).HasColumnName("training_style").HasConversion<string>().HasMaxLength(30);
+        builder.Property(mp => mp.EquipmentPreference).HasColumnName("equipment_preference").HasConversion<string>().HasMaxLength(30).IsRequired();
 
         builder.Property(mp => mp.Weight);
         builder.Property(mp => mp.Height);

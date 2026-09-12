@@ -121,15 +121,63 @@ public class ExerciseSelectorTests
     }
 
     [Fact]
-    public void Does_not_block_a_named_advanced_movement_for_non_beginners()
+    public void Blocks_a_named_advanced_movement_for_intermediate_and_advanced_members_too()
     {
+        // The actual bug reported live: "full planche push-up" and "muscle up" showed
+        // up in an Intermediate member's generated plan. The blocklist must apply
+        // regardless of fitness level - these are specialist skill movements, not
+        // something that becomes appropriate just because a member levels up.
         var pushDay = new DayTemplate("Push", [MuscleGroup.Chest]);
         var plancheCandidate = BenchPressCandidate with { Name = "full planche push-up", Difficulty = DifficultyLevel.Intermediate };
 
-        var selected = _sut.SelectForDay(
+        var selectedForIntermediate = _sut.SelectForDay(
             pushDay, [plancheCandidate], FitnessLevel.Intermediate, new HashSet<long>(), [], exerciseCount: 1);
+        var selectedForAdvanced = _sut.SelectForDay(
+            pushDay, [plancheCandidate], FitnessLevel.Advanced, new HashSet<long>(), [], exerciseCount: 1);
+
+        Assert.Empty(selectedForIntermediate);
+        Assert.Empty(selectedForAdvanced);
+    }
+
+    [Theory]
+    [InlineData("dumbbell one arm lateral raise")]
+    [InlineData("cable one arm curl")]
+    [InlineData("band one arm overhead biceps curl")]
+    [InlineData("weighted pull-up")]
+    [InlineData("kettlebell one arm push press")]
+    public void Does_not_block_ordinary_unilateral_or_loaded_exercises(string exerciseName)
+    {
+        // Regression test for the previous "one arm"/"one-arm" keywords, which matched
+        // 117 of 1,180 seeded strength exercises (~10% of the catalog) - almost all of
+        // them completely normal unilateral dumbbell/cable/band work, not elite skills.
+        var pushDay = new DayTemplate("Push", [MuscleGroup.Chest]);
+        var candidate = BenchPressCandidate with { Name = exerciseName };
+
+        var selected = _sut.SelectForDay(
+            pushDay, [candidate], FitnessLevel.Beginner, new HashSet<long>(), [], exerciseCount: 1);
 
         Assert.Contains(BenchPress, selected);
+    }
+
+    [Theory]
+    [InlineData("full maltese")]
+    [InlineData("straddle maltese")]
+    [InlineData("one arm chin-up")]
+    [InlineData("one arm dip")]
+    [InlineData("weighted one hand pull up")]
+    [InlineData("kettlebell one arm jerk")]
+    [InlineData("squat jerk")]
+    public void Blocks_elite_skill_movements_found_in_the_seeded_catalog(string exerciseName)
+    {
+        // Found by querying the actual exercise_translations data for elite-skill name
+        // patterns beyond the two originally-confirmed examples (planche, muscle-up).
+        var pushDay = new DayTemplate("Push", [MuscleGroup.Chest]);
+        var candidate = BenchPressCandidate with { Name = exerciseName };
+
+        var selected = _sut.SelectForDay(
+            pushDay, [candidate], FitnessLevel.Advanced, new HashSet<long>(), [], exerciseCount: 1);
+
+        Assert.Empty(selected);
     }
 
     [Fact]
@@ -153,5 +201,105 @@ public class ExerciseSelectorTests
             LegDay, candidates, FitnessLevel.Advanced, new HashSet<long>(), [], exerciseCount: 2);
 
         Assert.True(selected.Count <= 2);
+    }
+
+    [Fact]
+    public void Upper_day_picks_more_chest_and_back_exercises_than_biceps_or_triceps()
+    {
+        // End-to-end: with an ample candidate pool for every Upper-day muscle group and
+        // a big enough budget, the day-type weighting (chest/back=3, shoulders/triceps/
+        // biceps=2) should actually show up in what SelectForDay picks - not just in the
+        // allocator's output in isolation.
+        const long Back = 20;
+        const long Shoulders = 21;
+        const long Triceps = 22;
+        const long Biceps = 23;
+
+        ExerciseCandidate Isolation(long muscleId, MuscleGroup group, int index) => new(
+            Guid.NewGuid(), DifficultyLevel.Intermediate,
+            [new MuscleTarget(muscleId, group, MuscleRole.Primary)],
+            $"{group} isolation {index}");
+
+        var candidates = new List<ExerciseCandidate>();
+        foreach (var (muscleId, group) in new[]
+        {
+            (Chest, MuscleGroup.Chest), (Back, MuscleGroup.Back), (Shoulders, MuscleGroup.Shoulders),
+            (Triceps, MuscleGroup.Triceps), (Biceps, MuscleGroup.Biceps),
+        })
+        {
+            for (var i = 0; i < 4; i++) candidates.Add(Isolation(muscleId, group, i));
+        }
+
+        var upperDay = new DayTemplate(
+            "Upper Body",
+            [MuscleGroup.Chest, MuscleGroup.Back, MuscleGroup.Shoulders, MuscleGroup.Triceps, MuscleGroup.Biceps],
+            new Dictionary<MuscleGroup, int>
+            {
+                [MuscleGroup.Chest] = 3,
+                [MuscleGroup.Back] = 3,
+                [MuscleGroup.Shoulders] = 2,
+                [MuscleGroup.Triceps] = 2,
+                [MuscleGroup.Biceps] = 2,
+            });
+
+        var selected = _sut.SelectForDay(
+            upperDay, candidates, FitnessLevel.Advanced, new HashSet<long>(), [], exerciseCount: 12);
+
+        int CountFor(MuscleGroup group) => selected.Count(id => candidates.Any(c =>
+            c.ExerciseId == id && c.Targets.Any(t => t.Group == group)));
+
+        Assert.Equal(12, selected.Count);
+        Assert.Equal(3, CountFor(MuscleGroup.Chest));
+        Assert.Equal(3, CountFor(MuscleGroup.Back));
+        Assert.Equal(2, CountFor(MuscleGroup.Shoulders));
+        Assert.Equal(2, CountFor(MuscleGroup.Triceps));
+        Assert.Equal(2, CountFor(MuscleGroup.Biceps));
+    }
+
+    [Fact]
+    public void Bodyweight_preference_excludes_any_exercise_that_requires_equipment()
+    {
+        var barbellBenchPress = BenchPressCandidate with { RequiresEquipment = true };
+        var pushUp = LegExtensionCandidate with
+        {
+            ExerciseId = Guid.NewGuid(),
+            Name = "push-up",
+            Targets = [new MuscleTarget(Chest, MuscleGroup.Chest, MuscleRole.Primary)],
+            RequiresEquipment = false,
+        };
+        var chestDay = new DayTemplate("Push", [MuscleGroup.Chest]);
+
+        var selected = _sut.SelectForDay(
+            chestDay, [barbellBenchPress, pushUp], FitnessLevel.Advanced, new HashSet<long>(), [], exerciseCount: 2,
+            equipmentPreference: EquipmentPreference.Bodyweight);
+
+        Assert.DoesNotContain(BenchPress, selected);
+        Assert.Contains(pushUp.ExerciseId, selected);
+    }
+
+    [Fact]
+    public void Gym_preference_is_unaffected_by_the_equipment_filter()
+    {
+        var barbellBenchPress = BenchPressCandidate with { RequiresEquipment = true };
+
+        var selected = _sut.SelectForDay(
+            new DayTemplate("Push", [MuscleGroup.Chest]), [barbellBenchPress], FitnessLevel.Advanced,
+            new HashSet<long>(), [], exerciseCount: 1, equipmentPreference: EquipmentPreference.Gym);
+
+        Assert.Contains(BenchPress, selected);
+    }
+
+    [Fact]
+    public void Default_equipment_preference_behaves_as_gym_when_not_specified()
+    {
+        // No equipmentPreference argument at all - existing call sites (and the default
+        // parameter value) should behave exactly like Gym, i.e. no filtering.
+        var barbellBenchPress = BenchPressCandidate with { RequiresEquipment = true };
+
+        var selected = _sut.SelectForDay(
+            new DayTemplate("Push", [MuscleGroup.Chest]), [barbellBenchPress], FitnessLevel.Advanced,
+            new HashSet<long>(), [], exerciseCount: 1);
+
+        Assert.Contains(BenchPress, selected);
     }
 }
