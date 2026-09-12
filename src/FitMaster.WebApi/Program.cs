@@ -91,9 +91,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "FitMaster API v1"));
 }
 
-app.UseHttpsRedirection();
-
+// CORS must run before the HTTPS redirect: browsers refuse to follow a redirect
+// for a CORS preflight (OPTIONS) request, and the frontend's dev server intentionally
+// calls the http profile - putting UseHttpsRedirection first breaks every request.
 app.UseCors("Frontend");
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
