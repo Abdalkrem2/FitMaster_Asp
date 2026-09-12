@@ -5,9 +5,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Calendar,
+  RefreshCw,
   Filter,
-  Search,
   UserPlus,
   PackagePlus,
   Clock,
@@ -111,10 +110,9 @@ const ActivityLog: React.FC = () => {
     return groups;
   }, [activities, searchQuery]);
 
-  const getActivityVisuals = (type: string) => {
-    switch (type) {
+  const getActivityVisuals = (actionType: string) => {
+    switch (actionType) {
       case "CREATE":
-      case "MEMBERSHIP":
         return {
           badge: (
             <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow-sm">
@@ -141,6 +139,15 @@ const ActivityLog: React.FC = () => {
           ),
           accentColor: "border-l-rose-500 bg-rose-50 text-rose-700",
         };
+      case "RENEW":
+        return {
+          badge: (
+            <div className="absolute -bottom-1 -right-1 bg-violet-500 text-white rounded-full p-1 border-2 border-white shadow-sm">
+              <RefreshCw className="w-2.5 h-2.5" />
+            </div>
+          ),
+          accentColor: "border-l-violet-500 bg-violet-50 text-violet-700",
+        };
       default:
         return {
           badge: (
@@ -151,13 +158,6 @@ const ActivityLog: React.FC = () => {
           accentColor: "border-l-slate-500 bg-slate-50 text-slate-700",
         };
     }
-  };
-
-  // Helper to parse the action "details" to make entities bold
-  // Example: "Added member John Doe" -> make "John Doe" bold if possible.
-  // We'll wrap words matching entityType rules
-  const renderRichText = (details: string, type: string) => {
-    return <span className="text-slate-600 font-medium">{details}</span>;
   };
 
   return (
@@ -209,6 +209,9 @@ const ActivityLog: React.FC = () => {
               <option value="MEMBER">Member</option>
               <option value="EMPLOYEE">Employee</option>
               <option value="MEMBERSHIP">Membership</option>
+              <option value="PACKAGE">Package</option>
+              <option value="WORKOUT_PLAN">Workout Plan</option>
+              <option value="NUTRITION_PLAN">Nutrition Plan</option>
             </select>
             <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           </div>
@@ -301,13 +304,11 @@ const ActivityLog: React.FC = () => {
                         <div className="flex-1">
                           <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 group-hover:-translate-y-[1px]">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                              <p className="text-[14px] leading-relaxed text-slate-700">
-                                <span className="font-bold text-slate-900">
-                                  {activity.performedByName}
-                                </span>{" "}
-                                {renderRichText(
-                                  (activity.details ?? "").toString(),
-                                  activity.actionType.toString(),
+                              <p className="text-[14px] leading-relaxed font-semibold text-slate-900">
+                                {activity.details || (
+                                  <span className="italic text-slate-400 font-normal">
+                                    No details recorded
+                                  </span>
                                 )}
                               </p>
                               <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap bg-slate-50 px-2 py-1 rounded-md sm:ml-4 self-start">
@@ -316,6 +317,10 @@ const ActivityLog: React.FC = () => {
                             </div>
 
                             <div className="flex items-center gap-2 mt-2">
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                by {activity.performedByName}
+                              </span>
+                              <span className="text-slate-300">&middot;</span>
                               <span
                                 className={`text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-sm border-l-2 ${accentColor}`}
                               >
