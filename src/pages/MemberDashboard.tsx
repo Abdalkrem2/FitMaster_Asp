@@ -11,7 +11,6 @@ import {
   Flame,
   Target,
   CheckCircle2,
-  Award,
   Utensils,
   CreditCard,
 } from "lucide-react";
@@ -47,8 +46,6 @@ const MemberDashboard: React.FC = () => {
     : 0;
 
   const isActive = daysRemaining > 0;
-  const lastMembership = data?.memberships?.[0];
-  const packageName = lastMembership?.packageName ?? "—";
 
   if (loading)
     return (
@@ -253,31 +250,13 @@ const MemberDashboard: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Subscription Info */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Award className="w-4 h-4 text-indigo-500" />
-              <p className="text-sm font-medium text-slate-500">Subscription</p>
-            </div>
-            <p className="text-2xl font-bold text-indigo-600 mb-1">
-              {packageName}
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              {lastMembership?.timestamp
-                ? `Registered on: ${new Date(
-                    lastMembership.timestamp,
-                  ).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}`
-                : "No subscription yet"}
-            </p>
             <button
               onClick={() => navigate("/member-payment")}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 text-sm font-semibold hover:bg-indigo-100 transition-colors"
+              className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                isActive
+                  ? "border border-emerald-200 bg-white/60 text-emerald-700 hover:bg-white"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
             >
               <CreditCard className="w-4 h-4" />
               {isActive ? "Renew Online" : "Pay Online"}
