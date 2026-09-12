@@ -32,10 +32,12 @@ public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passw
             Phone = request.Phone,
             PasswordHash = passwordHasher.Hash(request.Password),
             FullName = request.FullName,
+            Gender = request.Gender,
             IsActivated = true,
             Deleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
+            CreatedById = currentUser.UserId,
             Roles = [memberRole],
         };
         db.Users.Add(user);

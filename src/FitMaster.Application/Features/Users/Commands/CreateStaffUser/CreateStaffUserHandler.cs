@@ -35,6 +35,7 @@ public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher pa
             Deleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
+            CreatedById = currentUser.UserId,
             Roles = [role],
         };
 

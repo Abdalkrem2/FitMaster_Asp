@@ -8,5 +8,5 @@ public record CreateMembershipCommand(
     long PackageId,
     DateOnly StartDate,
     decimal? Price,
-    decimal? Debt,
+    decimal? AmountPaid,
     string? Description) : IRequest<Result<long>>;

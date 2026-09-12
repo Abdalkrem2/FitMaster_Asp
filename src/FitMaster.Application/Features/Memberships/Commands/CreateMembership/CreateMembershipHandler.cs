@@ -31,6 +31,12 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
         }
 
         var now = DateTime.UtcNow;
+        var price = request.Price ?? package.Price;
+        // Debt is always derived from price - amountPaid, never entered directly -
+        // same rule as EndDate below: keep it consistent with what was actually sold
+        // and paid, rather than trusting a client-computed number.
+        var amountPaid = request.AmountPaid ?? price;
+        var debt = Math.Max(price - amountPaid, 0);
 
         var membership = new Membership
         {
@@ -41,8 +47,8 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
             // The core rule: end date is always derived from the package's duration,
             // never entered manually - keeps it consistent with what was actually sold.
             EndDate = request.StartDate.AddDays(package.DurationInDays),
-            Price = request.Price ?? package.Price,
-            Debt = request.Debt,
+            Price = price,
+            Debt = debt,
             Description = request.Description,
             CreatedAt = now,
             UpdatedAt = now,

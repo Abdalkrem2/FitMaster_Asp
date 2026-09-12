@@ -37,11 +37,13 @@ public class GetMembersListHandler(IApplicationDbContext db)
                 p.Member.Memberships
                     .Where(m => m.Status == MembershipStatus.Active)
                     .OrderByDescending(m => m.EndDate)
+                    .ThenByDescending(m => m.Id)
                     .Select(m => (decimal?)m.Debt)
                     .FirstOrDefault(),
                 p.Member.Memberships
                     .Where(m => m.Status == MembershipStatus.Active)
                     .OrderByDescending(m => m.EndDate)
+                    .ThenByDescending(m => m.Id)
                     .Select(m => (DateOnly?)m.EndDate)
                     .FirstOrDefault()))
             .ToListAsync(cancellationToken);

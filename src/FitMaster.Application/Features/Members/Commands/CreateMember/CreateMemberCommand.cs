@@ -13,6 +13,7 @@ public record CreateMemberCommand(
     string Phone,
     string Password,
     string FullName,
+    string? Gender,
     FitnessGoal Goal,
     FitnessLevel FitnessLevel,
     SplitType SplitType,

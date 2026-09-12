@@ -23,11 +23,13 @@ public class GetMemberByIdHandler(IApplicationDbContext db) : IRequestHandler<Ge
                 p.Member.Memberships
                     .Where(m => m.Status == MembershipStatus.Active)
                     .OrderByDescending(m => m.EndDate)
+                    .ThenByDescending(m => m.Id)
                     .Select(m => (decimal?)m.Debt)
                     .FirstOrDefault(),
                 p.Member.Memberships
                     .Where(m => m.Status == MembershipStatus.Active)
                     .OrderByDescending(m => m.EndDate)
+                    .ThenByDescending(m => m.Id)
                     .Select(m => (DateOnly?)m.EndDate)
                     .FirstOrDefault(),
                 p.Goal,
