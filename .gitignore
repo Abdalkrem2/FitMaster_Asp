@@ -33,8 +33,6 @@ appsettings.*.local.json
 ## NuGet
 *.nupkg
 *.snupkg
-**/packages/*
-!**/packages/build/
 project.lock.json
 project.fragment.lock.json
 artifacts/
