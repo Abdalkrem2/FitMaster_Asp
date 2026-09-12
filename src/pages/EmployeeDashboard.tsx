@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Users, AlertCircle } from "lucide-react";
-import {
-  dashboardService,
-  type DashboardStats,
-} from "../services/dashboardService";
+import { dashboardService } from "../services/dashboardService";
 import { Card } from "../components/ui/Card";
+
+type EmployeeDashboardStats = { activeMembers: number; expiringSoon: number };
 
 const StatCard: React.FC<{
   title: string;
@@ -22,13 +21,13 @@ const StatCard: React.FC<{
 );
 
 const EmployeeDashboard: React.FC = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<EmployeeDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const statsData = await dashboardService.getStats();
+        const statsData = await dashboardService.getEmployeeStats();
         setStats(statsData);
       } catch (error) {
         console.error("Failed to load dashboard data");
