@@ -3,6 +3,7 @@ using FitMaster.Domain.Entities.ActivityLogging;
 using FitMaster.Domain.Entities.Members;
 using FitMaster.Domain.Entities.Memberships;
 using FitMaster.Domain.Entities.Notifications;
+using FitMaster.Domain.Entities.Payments;
 using FitMaster.Domain.Entities.Nutrition;
 using FitMaster.Domain.Entities.Workouts;
 
@@ -45,6 +46,8 @@ public class User : BaseEntity
     public MemberProfile? MemberProfile { get; set; }
 
     public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
+
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public ICollection<WorkoutPlan> WorkoutPlans { get; set; } = new List<WorkoutPlan>();
 

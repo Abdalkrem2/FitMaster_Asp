@@ -1,5 +1,6 @@
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Features.Memberships.Commands.CreateMembership;
+using FitMaster.Application.MembershipProvisioning;
 using FitMaster.Domain.Entities.Identity;
 using FitMaster.Domain.Entities.Memberships;
 using FitMaster.Domain.Enums;
@@ -65,7 +66,7 @@ public class CreateMembershipHandlerTests
         });
         await db.SaveChangesAsync();
 
-        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher());
+        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher(), new MembershipProvisioningService(db));
         var command = new CreateMembershipCommand(member.Id, newPackage.Id, today, null, null, null);
 
         // Act
@@ -87,7 +88,7 @@ public class CreateMembershipHandlerTests
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher());
+        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher(), new MembershipProvisioningService(db));
         var command = new CreateMembershipCommand(member.Id, package.Id, today, null, null, null);
 
         // Act
@@ -120,7 +121,7 @@ public class CreateMembershipHandlerTests
         });
         await db.SaveChangesAsync();
 
-        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher());
+        var handler = new CreateMembershipHandler(db, new FakeCurrentUserService(1), new NoOpPublisher(), new MembershipProvisioningService(db));
         var command = new CreateMembershipCommand(member.Id, package.Id, today, null, null, null);
 
         // Act

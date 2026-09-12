@@ -2,9 +2,11 @@ using System.Net.Http.Headers;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.NutritionGeneration;
 using FitMaster.Application.Pdf;
+using FitMaster.Application.MembershipProvisioning;
 using FitMaster.Infrastructure.Ai;
 using FitMaster.Infrastructure.Files;
 using FitMaster.Infrastructure.Identity;
+using FitMaster.Infrastructure.Payments;
 using FitMaster.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +60,14 @@ public static class DependencyInjection
         {
             client.Timeout = TimeSpan.FromSeconds(10);
         });
+
+        // Online payments (Stripe) - Stripe:SecretKey / Stripe:WebhookSecret are
+        // User-Secrets-only and checked eagerly at startup in Program.cs (unlike Groq
+        // above): a missing key here wouldn't just disable one feature, it would leave
+        // the webhook endpoint either broken or unable to verify signatures at all.
+        services.Configure<StripeSettings>(configuration.GetSection("Stripe"));
+        services.AddScoped<IPaymentGatewayService, StripePaymentGatewayService>();
+        services.AddScoped<IMembershipProvisioningService, MembershipProvisioningService>();
 
         return services;
     }

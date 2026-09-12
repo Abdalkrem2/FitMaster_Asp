@@ -17,6 +17,15 @@ public enum PackageStatus
 }
 
 
+public enum PaymentStatus
+{
+    Pending,
+    Completed,
+    Failed,
+    Cancelled
+}
+
+
 public enum PaymentMethod
 {
     Subscription,

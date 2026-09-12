@@ -7,6 +7,7 @@ using FitMaster.Domain.Entities.Members;
 using FitMaster.Domain.Entities.Memberships;
 using FitMaster.Domain.Entities.Notifications;
 using FitMaster.Domain.Entities.Nutrition;
+using FitMaster.Domain.Entities.Payments;
 using FitMaster.Domain.Entities.Workouts;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,7 @@ public class FitMasterDbContext(DbContextOptions<FitMasterDbContext> options)
     public DbSet<Package> Packages => Set<Package>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<Revenue> Revenues => Set<Revenue>();
+    public DbSet<Payment> Payments => Set<Payment>();
 
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationUserState> NotificationUserStates => Set<NotificationUserState>();

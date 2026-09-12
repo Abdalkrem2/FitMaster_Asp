@@ -1,15 +1,18 @@
 using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
-using FitMaster.Domain.Entities.Memberships;
+using FitMaster.Application.MembershipProvisioning;
 using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Memberships.Commands.CreateMembership;
 
-public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
-    : IRequestHandler<CreateMembershipCommand, Result<long>>
+public class CreateMembershipHandler(
+    IApplicationDbContext db,
+    ICurrentUserService currentUser,
+    IPublisher publisher,
+    IMembershipProvisioningService provisioning) : IRequestHandler<CreateMembershipCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(CreateMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -33,63 +36,22 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
             return Result<long>.Failure("This package is not currently active and cannot be sold.");
         }
 
-        var now = DateTime.UtcNow;
         var price = request.Price ?? package.Price;
         // Debt is always derived from price - amountPaid, never entered directly -
-        // same rule as EndDate below: keep it consistent with what was actually sold
-        // and paid, rather than trusting a client-computed number.
+        // same rule as EndDate (see MembershipProvisioningService): keep it consistent
+        // with what was actually sold and paid, rather than trusting a client-computed number.
         var amountPaid = request.AmountPaid ?? price;
-        var debt = Math.Max(price - amountPaid, 0);
 
-        // If the member already has active, unexpired coverage, queue the new
-        // membership to start right after it ends instead of today - otherwise
-        // a new purchase would overlap the existing one instead of stacking.
-        // Picks the furthest-out end date if more than one active row qualifies.
-        var currentCoverageEndDate = await db.Memberships
-            .Where(m => m.MemberId == request.MemberId
-                && m.Status == MembershipStatus.Active
-                && m.EndDate > request.StartDate)
-            .OrderByDescending(m => m.EndDate)
-            .Select(m => (DateOnly?)m.EndDate)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var effectiveStartDate = currentCoverageEndDate ?? request.StartDate;
-
-        var membership = new Membership
-        {
-            MemberId = request.MemberId,
-            PackageId = request.PackageId,
-            Status = MembershipStatus.Active,
-            StartDate = effectiveStartDate,
-            // The core rule: end date is always derived from the package's duration,
-            // never entered manually - keeps it consistent with what was actually sold.
-            EndDate = effectiveStartDate.AddDays(package.DurationInDays),
-            Price = price,
-            Debt = debt,
-            Description = request.Description,
-            CreatedAt = now,
-            UpdatedAt = now,
-        };
-
-        db.Memberships.Add(membership);
-        await db.SaveChangesAsync(cancellationToken);
-
-        db.Revenues.Add(new Revenue
-        {
-            MemberId = request.MemberId,
-            MembershipId = membership.Id,
-            CreatedById = currentUser.UserId!.Value,
-            Amount = membership.Price,
-            Description = $"Membership sale - {package.Name}",
-            CreatedAt = DateOnly.FromDateTime(now),
-            UpdatedAt = DateOnly.FromDateTime(now),
-        });
-        await db.SaveChangesAsync(cancellationToken);
+        var membership = await provisioning.ProvisionAsync(
+            request.MemberId, package, request.StartDate, price, amountPaid, request.Description,
+            revenueCreatedById: currentUser.UserId!.Value,
+            revenueDescription: $"Membership sale - {package.Name}",
+            cancellationToken);
 
         await publisher.Publish(new ActivityOccurredEvent(
             currentUser.UserId!.Value, ActionType.Create, EntityType.Membership, membership.Id,
             $"Added \"{package.Name}\" subscription for \"{memberName}\" " +
-            $"({effectiveStartDate:yyyy-MM-dd} → {membership.EndDate:yyyy-MM-dd}, ${price:0.00})"), cancellationToken);
+            $"({membership.StartDate:yyyy-MM-dd} → {membership.EndDate:yyyy-MM-dd}, ${price:0.00})"), cancellationToken);
 
         return Result<long>.Success(membership.Id);
     }

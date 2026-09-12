@@ -5,6 +5,7 @@ using FitMaster.Domain.Entities.Members;
 using FitMaster.Domain.Entities.Memberships;
 using FitMaster.Domain.Entities.Notifications;
 using FitMaster.Domain.Entities.Nutrition;
+using FitMaster.Domain.Entities.Payments;
 using FitMaster.Domain.Entities.Workouts;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.Intrinsics.Arm;
@@ -25,6 +26,7 @@ public interface IApplicationDbContext
     DbSet<Package> Packages { get; }
     DbSet<Membership> Memberships { get; }
     DbSet<Revenue> Revenues { get; }
+    DbSet<Payment> Payments { get; }
 
     DbSet<Notification> Notifications { get; }
     DbSet<NotificationUserState> NotificationUserStates { get; }

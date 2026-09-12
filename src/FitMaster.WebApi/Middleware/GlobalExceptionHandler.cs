@@ -56,6 +56,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     {
         ValidationException => (StatusCodes.Status400BadRequest, "One or more validation errors occurred."),
         NotFoundException => (StatusCodes.Status404NotFound, "The requested resource was not found."),
+        InvalidWebhookSignatureException => (StatusCodes.Status400BadRequest, "Invalid webhook signature."),
         UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized."),
         _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred."),
     };

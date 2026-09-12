@@ -35,6 +35,19 @@ var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
         "Jwt:SecretKey is not set. Configure it via User Secrets: " +
         "dotnet user-secrets set \"Jwt:SecretKey\" \"<a long random string>\"");
 
+// Stripe (online payments) - same fail-fast pattern as Jwt:SecretKey above. Both are
+// checked eagerly (unlike Groq/Cloudinary, which fail lazily only when actually used)
+// because a missing key here doesn't just disable one feature - the webhook endpoint
+// would either be broken outright or, worse, unable to verify signatures at all.
+_ = builder.Configuration["Stripe:SecretKey"]
+    ?? throw new InvalidOperationException(
+        "Stripe:SecretKey is not set. Configure it via User Secrets: " +
+        "dotnet user-secrets set \"Stripe:SecretKey\" \"sk_test_...\"");
+_ = builder.Configuration["Stripe:WebhookSecret"]
+    ?? throw new InvalidOperationException(
+        "Stripe:WebhookSecret is not set. Configure it via User Secrets: " +
+        "dotnet user-secrets set \"Stripe:WebhookSecret\" \"whsec_...\"");
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -91,12 +104,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "FitMaster API v1"));
 }
 
-// CORS must run before the HTTPS redirect: browsers refuse to follow a redirect
-// for a CORS preflight (OPTIONS) request, and the frontend's dev server intentionally
-// calls the http profile - putting UseHttpsRedirection first breaks every request.
 app.UseCors("Frontend");
 
-app.UseHttpsRedirection();
+// Skipped in Development: the frontend dev server always talks to the plain http
+// endpoint, and redirecting it to https breaks CORS outright - a cross-origin
+// redirect (http:5035 -> https:7129) fails the browser's CORS check even with the
+// ordering above, because the *actual* request (not just the OPTIONS preflight)
+// still gets redirected once it's past CORS. Only relevant when the dev server is
+// launched on the "https" profile (or an IDE defaults to it) instead of "http".
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

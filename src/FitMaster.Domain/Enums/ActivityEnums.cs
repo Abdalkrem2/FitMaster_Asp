@@ -25,5 +25,6 @@ public enum EntityType
     Membership,
     Package,
     WorkoutPlan,
-    NutritionPlan
+    NutritionPlan,
+    Payment
 }
