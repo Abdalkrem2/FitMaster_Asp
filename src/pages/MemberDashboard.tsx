@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Award,
   Utensils,
+  CreditCard,
 } from "lucide-react";
 import { memberService } from "../services/memberService";
 
@@ -274,6 +275,13 @@ const MemberDashboard: React.FC = () => {
                   })}`
                 : "No subscription yet"}
             </p>
+            <button
+              onClick={() => navigate("/member-payment")}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 text-sm font-semibold hover:bg-indigo-100 transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              {isActive ? "Renew Online" : "Pay Online"}
+            </button>
           </div>
 
           {/* Quick Action */}

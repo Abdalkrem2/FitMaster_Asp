@@ -21,6 +21,9 @@ import MemberWorkoutPlan from "../pages/MemberWorkoutPlan";
 import MemberNutritionPlan from "../pages/MemberNutritionPlan";
 import MemberPlanHistory from "../pages/MemberPlanHistory";
 import MemberSettings from "../pages/MemberSettings";
+import MemberPayment from "../pages/MemberPayment";
+import PaymentSuccess from "../pages/PaymentSuccess";
+import PaymentCancelled from "../pages/PaymentCancelled";
 
 //Guard: ADMIN only
 // if not admin return to tha main page
@@ -74,6 +77,21 @@ export const router = createBrowserRouter([
     path: "/member-settings",
     element: <MemberLayout />,
     children: [{ index: true, element: <MemberSettings /> }],
+  },
+  {
+    path: "/member-payment",
+    element: <MemberLayout />,
+    children: [{ index: true, element: <MemberPayment /> }],
+  },
+  {
+    path: "/payments/success",
+    element: <MemberLayout />,
+    children: [{ index: true, element: <PaymentSuccess /> }],
+  },
+  {
+    path: "/payments/cancel",
+    element: <MemberLayout />,
+    children: [{ index: true, element: <PaymentCancelled /> }],
   },
   {
     path: "/",

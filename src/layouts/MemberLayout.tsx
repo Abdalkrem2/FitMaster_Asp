@@ -11,6 +11,7 @@ import {
   LogOut,
   History,
   Settings,
+  CreditCard,
 } from "lucide-react";
 
 const navItems = [
@@ -18,6 +19,7 @@ const navItems = [
   { to: "/member-workout-plan", icon: Dumbbell, label: "Workout Plan" },
   { to: "/member-nutrition-plan", icon: Utensils, label: "Nutrition Plan" },
   { to: "/member-plan-history", icon: History, label: "History" },
+  { to: "/member-payment", icon: CreditCard, label: "Pay Online" },
   { to: "/member-profile", icon: User, label: "Profile" },
   { to: "/member-settings", icon: Settings, label: "Settings" },
 ];
