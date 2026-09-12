@@ -39,24 +39,37 @@ public class WorkoutPlanPdfGenerator : IWorkoutPlanPdfGenerator
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn(3);
+                                columns.ConstantColumn(20);
+                                columns.RelativeColumn(4);
                                 columns.RelativeColumn(1);
                                 columns.RelativeColumn(1);
                             });
 
                             table.Header(header =>
                             {
+                                header.Cell().Text("#").Bold();
                                 header.Cell().Text("Exercise").Bold();
                                 header.Cell().Text("Sets").Bold();
                                 header.Cell().Text("Reps").Bold();
-                                header.Cell().ColumnSpan(3).PaddingBottom(2).LineHorizontal(0.5f);
+                                header.Cell().ColumnSpan(4).PaddingBottom(2).LineHorizontal(0.5f);
                             });
 
+                            var number = 1;
                             foreach (var exercise in day.WorkoutExercises)
                             {
-                                table.Cell().Text(exercise.ExerciseName ?? "Exercise");
-                                table.Cell().Text(exercise.Sets?.ToString() ?? "-");
-                                table.Cell().Text(FormatReps(exercise));
+                                table.Cell().PaddingTop(4).Text(number.ToString());
+                                table.Cell().PaddingVertical(4).Column(exerciseColumn =>
+                                {
+                                    exerciseColumn.Item().Text(exercise.ExerciseName ?? "Exercise").Bold();
+                                    for (var i = 0; i < exercise.Instructions.Count; i++)
+                                    {
+                                        exerciseColumn.Item().PaddingTop(1)
+                                            .Text($"{i + 1}. {exercise.Instructions[i]}").FontSize(8.5f);
+                                    }
+                                });
+                                table.Cell().PaddingTop(4).Text(exercise.Sets?.ToString() ?? "-");
+                                table.Cell().PaddingTop(4).Text(FormatReps(exercise));
+                                number++;
                             }
                         });
                     }
