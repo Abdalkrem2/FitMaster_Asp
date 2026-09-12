@@ -1,11 +1,14 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Members.Commands.UpdateMemberIdentity;
 
-public class UpdateMemberIdentityHandler(IApplicationDbContext db) : IRequestHandler<UpdateMemberIdentityCommand, Result>
+public class UpdateMemberIdentityHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
+    : IRequestHandler<UpdateMemberIdentityCommand, Result>
 {
     public async Task<Result> Handle(UpdateMemberIdentityCommand request, CancellationToken cancellationToken)
     {
@@ -21,10 +24,18 @@ public class UpdateMemberIdentityHandler(IApplicationDbContext db) : IRequestHan
             return Result.Failure("This phone number is already registered.");
         }
 
+        var oldName = user.FullName;
+
         user.FullName = request.FullName;
         user.Phone = request.Phone;
         user.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+
+        var details = oldName == request.FullName
+            ? $"Updated contact details for member \"{user.FullName}\""
+            : $"Renamed member \"{oldName}\" to \"{user.FullName}\"";
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Update, EntityType.Member, user.Id, details), cancellationToken);
 
         return Result.Success();
     }

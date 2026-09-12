@@ -1,16 +1,19 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Members.Commands.UpdateMemberProfile;
 
-public class UpdateMemberProfileHandler(IApplicationDbContext db)
+public class UpdateMemberProfileHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
     : IRequestHandler<UpdateMemberProfileCommand, Result>
 {
     public async Task<Result> Handle(UpdateMemberProfileCommand request, CancellationToken cancellationToken)
     {
         var profile = await db.MemberProfiles
+            .Include(p => p.Member)
             .FirstOrDefaultAsync(p => p.MemberId == request.MemberId, cancellationToken);
 
         if (profile is null)
@@ -32,6 +35,10 @@ public class UpdateMemberProfileHandler(IApplicationDbContext db)
         profile.Allergies = request.Allergies ?? [];
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Update, EntityType.Member, request.MemberId,
+            $"Updated fitness profile for \"{profile.Member.FullName}\""), cancellationToken);
 
         return Result.Success();
     }

@@ -1,3 +1,4 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Application.NutritionGeneration;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Nutrition.Commands.GenerateNutritionPlan;
 
-public class GenerateNutritionPlanHandler(IApplicationDbContext db, INutritionPlanGenerator generator)
+public class GenerateNutritionPlanHandler(IApplicationDbContext db, INutritionPlanGenerator generator, ICurrentUserService currentUser, IPublisher publisher)
     : IRequestHandler<GenerateNutritionPlanCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(GenerateNutritionPlanCommand request, CancellationToken cancellationToken)
@@ -36,6 +37,10 @@ public class GenerateNutritionPlanHandler(IApplicationDbContext db, INutritionPl
 
         db.NutritionPlans.Add(plan);
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Create, EntityType.NutritionPlan, plan.Id,
+            $"Generated a new nutrition plan for \"{profile.Member.FullName}\""), cancellationToken);
 
         return Result<long>.Success(plan.Id);
     }

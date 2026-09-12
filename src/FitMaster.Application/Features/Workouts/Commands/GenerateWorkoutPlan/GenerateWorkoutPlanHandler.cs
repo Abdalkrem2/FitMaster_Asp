@@ -1,3 +1,4 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Application.WorkoutGeneration;
@@ -7,12 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Workouts.Commands.GenerateWorkoutPlan;
 
-public class GenerateWorkoutPlanHandler(IApplicationDbContext db, IWorkoutPlanGenerator generator)
+public class GenerateWorkoutPlanHandler(IApplicationDbContext db, IWorkoutPlanGenerator generator, ICurrentUserService currentUser, IPublisher publisher)
     : IRequestHandler<GenerateWorkoutPlanCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(GenerateWorkoutPlanCommand request, CancellationToken cancellationToken)
     {
         var profile = await db.MemberProfiles
+            .Include(p => p.Member)
             .FirstOrDefaultAsync(p => p.MemberId == request.MemberId, cancellationToken);
         if (profile is null)
         {
@@ -35,6 +37,10 @@ public class GenerateWorkoutPlanHandler(IApplicationDbContext db, IWorkoutPlanGe
 
         db.WorkoutPlans.Add(plan);
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Create, EntityType.WorkoutPlan, plan.Id,
+            $"Generated a new workout plan for \"{profile.Member.FullName}\""), cancellationToken);
 
         return Result<long>.Success(plan.Id);
     }

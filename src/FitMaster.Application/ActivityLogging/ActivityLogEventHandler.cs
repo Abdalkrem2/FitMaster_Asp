@@ -8,42 +8,24 @@ using Microsoft.EntityFrameworkCore;
 namespace FitMaster.Application.ActivityLogging;
 
 /// <summary>
-/// Writes an ActivityLog row for each domain event, then fans a Notification out
-/// to every Admin - the only recipient scope requested for this activity feed.
+/// Writes an ActivityLog row for the event, then fans a Notification out to
+/// every Admin - the only recipient scope requested for this activity feed.
+/// Reuses the same Details text for the notification message so admins see the
+/// same specific, human-readable description in both places.
 /// </summary>
-public class ActivityLogEventHandler(IApplicationDbContext db) :
-    INotificationHandler<MemberCreatedEvent>,
-    INotificationHandler<StaffUserCreatedEvent>,
-    INotificationHandler<MembershipCreatedEvent>,
-    INotificationHandler<MembershipRenewedEvent>
+public class ActivityLogEventHandler(IApplicationDbContext db) : INotificationHandler<ActivityOccurredEvent>
 {
-    public Task Handle(MemberCreatedEvent notification, CancellationToken cancellationToken)
-        => LogAndNotifyAsync(notification.PerformedById, ActionType.Create, EntityType.Member, notification.MemberId,
-            "A new member was created.", cancellationToken);
-
-    public Task Handle(StaffUserCreatedEvent notification, CancellationToken cancellationToken)
-        => LogAndNotifyAsync(notification.PerformedById, ActionType.Create, EntityType.Employee, notification.UserId,
-            "A new staff account was created.", cancellationToken);
-
-    public Task Handle(MembershipCreatedEvent notification, CancellationToken cancellationToken)
-        => LogAndNotifyAsync(notification.PerformedById, ActionType.Create, EntityType.Membership, notification.MembershipId,
-            "A new membership was created.", cancellationToken);
-
-    public Task Handle(MembershipRenewedEvent notification, CancellationToken cancellationToken)
-        => LogAndNotifyAsync(notification.PerformedById, ActionType.Renew, EntityType.Membership, notification.MembershipId,
-            "A membership was renewed.", cancellationToken);
-
-    private async Task LogAndNotifyAsync(
-        long performedById, ActionType action, EntityType entityType, long entityId, string message, CancellationToken cancellationToken)
+    public async Task Handle(ActivityOccurredEvent notification, CancellationToken cancellationToken)
     {
         var now = DateTime.UtcNow;
 
         var log = new ActivityLog
         {
-            PerformedById = performedById,
-            Action = action,
-            EntityType = entityType,
-            EntityId = entityId,
+            PerformedById = notification.PerformedById,
+            Action = notification.Action,
+            EntityType = notification.EntityType,
+            EntityId = notification.EntityId,
+            Details = notification.Details,
             CreatedAt = now,
         };
         db.ActivityLogs.Add(log);
@@ -59,7 +41,7 @@ public class ActivityLogEventHandler(IApplicationDbContext db) :
         {
             Type = NotificationType.ActivityLog,
             ReferenceId = log.Id,
-            Message = message,
+            Message = notification.Details,
             CreatedAt = now,
         };
         foreach (var adminId in adminIds)

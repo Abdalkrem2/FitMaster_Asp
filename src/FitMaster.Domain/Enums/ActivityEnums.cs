@@ -22,5 +22,8 @@ public enum EntityType
 {
     Member,
     Employee,
-    Membership
+    Membership,
+    Package,
+    WorkoutPlan,
+    NutritionPlan
 }

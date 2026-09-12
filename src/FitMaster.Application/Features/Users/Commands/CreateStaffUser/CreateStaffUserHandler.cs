@@ -2,6 +2,7 @@ using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
 using FitMaster.Domain.Entities.Identity;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +43,9 @@ public class CreateStaffUserHandler(IApplicationDbContext db, IPasswordHasher pa
         db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);
 
-        await publisher.Publish(new StaffUserCreatedEvent(user.Id, currentUser.UserId!.Value), cancellationToken);
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Create, EntityType.Employee, user.Id,
+            $"Created {request.Role} account for \"{user.FullName}\" (phone {user.Phone})"), cancellationToken);
 
         return Result<long>.Success(user.Id);
     }

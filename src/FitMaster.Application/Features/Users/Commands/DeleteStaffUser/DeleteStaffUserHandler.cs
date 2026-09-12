@@ -1,11 +1,14 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Users.Commands.DeleteStaffUser;
 
-public class DeleteStaffUserHandler(IApplicationDbContext db) : IRequestHandler<DeleteStaffUserCommand, Result>
+public class DeleteStaffUserHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
+    : IRequestHandler<DeleteStaffUserCommand, Result>
 {
     public async Task<Result> Handle(DeleteStaffUserCommand request, CancellationToken cancellationToken)
     {
@@ -18,6 +21,10 @@ public class DeleteStaffUserHandler(IApplicationDbContext db) : IRequestHandler<
         user.Deleted = true;
         user.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Delete, EntityType.Employee, user.Id,
+            $"Deleted staff account \"{user.FullName}\""), cancellationToken);
 
         return Result.Success();
     }

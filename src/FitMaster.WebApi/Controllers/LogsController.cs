@@ -15,7 +15,13 @@ public class LogsController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetList(
         [FromQuery] long? performedBy, [FromQuery] string? entityType, [FromQuery] int page, [FromQuery] int size, CancellationToken ct)
     {
-        EntityType? parsedEntityType = Enum.TryParse<EntityType>(entityType, ignoreCase: true, out var parsed) ? parsed : null;
+        // entityType arrives as SCREAMING_SNAKE_CASE (e.g. "WORKOUT_PLAN") to match the
+        // frontend's JsonStringEnumConverter(SnakeCaseUpper) convention - Enum.TryParse only
+        // understands the literal member name ("WorkoutPlan"), so strip underscores first.
+        EntityType? parsedEntityType = entityType is not null
+            && Enum.TryParse<EntityType>(entityType.Replace("_", ""), ignoreCase: true, out var parsed)
+                ? parsed
+                : null;
         return Ok(await sender.Send(new GetActivityLogsListQuery(performedBy, parsedEntityType, page, size), ct));
     }
 }

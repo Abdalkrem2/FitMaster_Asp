@@ -13,8 +13,11 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
 {
     public async Task<Result<long>> Handle(CreateMembershipCommand request, CancellationToken cancellationToken)
     {
-        var memberExists = await db.Users.AnyAsync(u => u.Id == request.MemberId && !u.Deleted, cancellationToken);
-        if (!memberExists)
+        var memberName = await db.Users
+            .Where(u => u.Id == request.MemberId && !u.Deleted)
+            .Select(u => u.FullName)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (memberName is null)
         {
             return Result<long>.Failure("Member not found.");
         }
@@ -83,7 +86,10 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
         });
         await db.SaveChangesAsync(cancellationToken);
 
-        await publisher.Publish(new MembershipCreatedEvent(membership.Id, currentUser.UserId!.Value), cancellationToken);
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Create, EntityType.Membership, membership.Id,
+            $"Added \"{package.Name}\" subscription for \"{memberName}\" " +
+            $"({effectiveStartDate:yyyy-MM-dd} → {membership.EndDate:yyyy-MM-dd}, ${price:0.00})"), cancellationToken);
 
         return Result<long>.Success(membership.Id);
     }

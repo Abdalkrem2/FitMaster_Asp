@@ -1,11 +1,14 @@
+using FitMaster.Application.ActivityLogging;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.Common.Models;
+using FitMaster.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitMaster.Application.Features.Members.Commands.DeleteMember;
 
-public class DeleteMemberHandler(IApplicationDbContext db) : IRequestHandler<DeleteMemberCommand, Result>
+public class DeleteMemberHandler(IApplicationDbContext db, ICurrentUserService currentUser, IPublisher publisher)
+    : IRequestHandler<DeleteMemberCommand, Result>
 {
     public async Task<Result> Handle(DeleteMemberCommand request, CancellationToken cancellationToken)
     {
@@ -18,6 +21,10 @@ public class DeleteMemberHandler(IApplicationDbContext db) : IRequestHandler<Del
         member.Deleted = true;
         member.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Delete, EntityType.Member, member.Id,
+            $"Deleted member \"{member.FullName}\""), cancellationToken);
 
         return Result.Success();
     }

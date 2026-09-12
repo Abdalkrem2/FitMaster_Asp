@@ -66,7 +66,9 @@ public class CreateMemberHandler(IApplicationDbContext db, IPasswordHasher passw
 
         await db.SaveChangesAsync(cancellationToken);
 
-        await publisher.Publish(new MemberCreatedEvent(user.Id, currentUser.UserId!.Value), cancellationToken);
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Create, EntityType.Member, user.Id,
+            $"Created member \"{user.FullName}\" (phone {user.Phone})"), cancellationToken);
 
         return Result<long>.Success(user.Id);
     }

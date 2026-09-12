@@ -15,6 +15,7 @@ public class RenewMembershipHandler(IApplicationDbContext db, ICurrentUserServic
     {
         var membership = await db.Memberships
             .Include(m => m.Package)
+            .Include(m => m.Member)
             .FirstOrDefaultAsync(m => m.Id == request.MembershipId, cancellationToken);
 
         if (membership is null)
@@ -43,7 +44,10 @@ public class RenewMembershipHandler(IApplicationDbContext db, ICurrentUserServic
         });
         await db.SaveChangesAsync(cancellationToken);
 
-        await publisher.Publish(new MembershipRenewedEvent(membership.Id, currentUser.UserId!.Value), cancellationToken);
+        await publisher.Publish(new ActivityOccurredEvent(
+            currentUser.UserId!.Value, ActionType.Renew, EntityType.Membership, membership.Id,
+            $"Extended \"{membership.Package.Name}\" subscription for \"{membership.Member.FullName}\" " +
+            $"— new end date {membership.EndDate:yyyy-MM-dd}"), cancellationToken);
 
         return Result.Success();
     }
