@@ -85,6 +85,7 @@ export interface CreateMemberRequest {
   fullName: string;
   phone: string;
   password: string;
+  gender?: string;
   goal: FitnessGoal;
   fitnessLevel: FitnessLevel;
   splitType: SplitType;

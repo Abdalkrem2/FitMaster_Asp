@@ -95,6 +95,7 @@ export default function AddMemberModal({ open, onClose, onSuccess }: Props) {
         fullName: formData.fullName,
         phone: formData.phone,
         password: formData.password,
+        gender: formData.gender,
         goal: "GENERAL_FITNESS",
         fitnessLevel: "BEGINNER",
         splitType: "FULL_BODY",

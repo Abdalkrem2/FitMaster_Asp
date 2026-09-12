@@ -1,12 +1,14 @@
 export type MembershipStatus = "ACTIVE" | "EXPIRED" | "FROZEN" | "CANCELED";
 
 // Matches CreateMembershipCommand (POST /api/memberships)
+// Debt is never sent directly - the backend always derives it from
+// price - amountPaid, so a client can't submit an inconsistent value.
 export interface MembershipRequest {
   memberId: number;
   packageId: number;
   startDate: string;
   price?: number;
-  debt?: number;
+  amountPaid?: number;
   description?: string;
 }
 
@@ -23,13 +25,4 @@ export interface Membership {
   price: number;
   debt?: number;
   description?: string;
-}
-
-export interface MembershipHistory {
-  id: number;
-  price: number;
-  debt?: number;
-  packageName: string;
-  description?: string;
-  timestamp: string;
 }

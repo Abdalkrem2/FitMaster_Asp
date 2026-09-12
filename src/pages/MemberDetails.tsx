@@ -34,7 +34,7 @@ const MemberDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const [price, setPrice] = useState("");
-  const [debt, setDebt] = useState("");
+  const [amountPaid, setAmountPaid] = useState("");
   const [description, setDescription] = useState("");
   const [addingMembership, setAddingMembership] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -61,7 +61,7 @@ const MemberDetails: React.FC = () => {
       await membershipService.addMembership(String(id), {
         startDate: new Date().toISOString().slice(0, 10),
         price: Number(price),
-        debt: Number(debt),
+        amountPaid: Number(amountPaid),
         description: description,
         packageId: Number(selectedPackageId),
       });
@@ -73,7 +73,7 @@ const MemberDetails: React.FC = () => {
       setMemberships(updatedMemberships);
 
       setPrice("");
-      setDebt("");
+      setAmountPaid("");
       setDescription("");
       setSelectedPackageId("");
     } catch (err) {
@@ -288,7 +288,15 @@ const MemberDetails: React.FC = () => {
                 </label>
                 <select
                    value={selectedPackageId}
-                   onChange={(e) => setSelectedPackageId(e.target.value)}
+                   onChange={(e) => {
+                     const pkgId = e.target.value;
+                     setSelectedPackageId(pkgId);
+                     const pkg = packages.find((p) => String(p.id) === pkgId);
+                     if (pkg) {
+                       setPrice(String(pkg.price));
+                       setAmountPaid(String(pkg.price));
+                     }
+                   }}
                    required
                    className="w-full px-3 py-2 text-sm border border-slate-200 bg-slate-50 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all h-10"
                 >
@@ -302,7 +310,7 @@ const MemberDetails: React.FC = () => {
                   ))}
                 </select>
 
-                <div className="mt-4">
+                <div className="mt-4 grid grid-cols-2 gap-3">
                   <Input
                     label="Duration (Read-only)"
                     type="text"
@@ -312,7 +320,14 @@ const MemberDetails: React.FC = () => {
                         : "—"
                     }
                     disabled
-                    className="bg-slate-100 text-slate-500 border-slate-200"
+                    className="bg-slate-100 text-slate-500 border-slate-200 mb-0"
+                  />
+                  <Input
+                    label="Debt (Calculated)"
+                    type="text"
+                    value={`$${Math.max(Number(price || 0) - Number(amountPaid || 0), 0)}`}
+                    disabled
+                    className="bg-slate-100 text-rose-600 font-semibold border-slate-200 mb-0"
                   />
                 </div>
               </div>
@@ -324,6 +339,14 @@ const MemberDetails: React.FC = () => {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="E.g. 150"
+                    required
+                  />
+                 <Input
+                    label="Amount Paid ($)"
+                    type="number"
+                    value={amountPaid}
+                    onChange={(e) => setAmountPaid(e.target.value)}
+                    placeholder="E.g. 40"
                     required
                   />
                  <Input
