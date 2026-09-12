@@ -25,7 +25,8 @@ public class GetMembersListHandler(IApplicationDbContext db)
         var size = request.Size <= 0 ? 20 : request.Size;
 
         var items = await query
-            .OrderBy(p => p.Member.FullName)
+            .OrderByDescending(p => p.Member.CreatedAt)
+            .ThenByDescending(p => p.MemberId)
             .Skip(page * size)
             .Take(size)
             .Select(p => new MemberListItemDto(
