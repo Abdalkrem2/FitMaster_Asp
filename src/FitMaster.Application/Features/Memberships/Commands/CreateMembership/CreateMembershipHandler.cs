@@ -38,15 +38,29 @@ public class CreateMembershipHandler(IApplicationDbContext db, ICurrentUserServi
         var amountPaid = request.AmountPaid ?? price;
         var debt = Math.Max(price - amountPaid, 0);
 
+        // If the member already has active, unexpired coverage, queue the new
+        // membership to start right after it ends instead of today - otherwise
+        // a new purchase would overlap the existing one instead of stacking.
+        // Picks the furthest-out end date if more than one active row qualifies.
+        var currentCoverageEndDate = await db.Memberships
+            .Where(m => m.MemberId == request.MemberId
+                && m.Status == MembershipStatus.Active
+                && m.EndDate > request.StartDate)
+            .OrderByDescending(m => m.EndDate)
+            .Select(m => (DateOnly?)m.EndDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var effectiveStartDate = currentCoverageEndDate ?? request.StartDate;
+
         var membership = new Membership
         {
             MemberId = request.MemberId,
             PackageId = request.PackageId,
             Status = MembershipStatus.Active,
-            StartDate = request.StartDate,
+            StartDate = effectiveStartDate,
             // The core rule: end date is always derived from the package's duration,
             // never entered manually - keeps it consistent with what was actually sold.
-            EndDate = request.StartDate.AddDays(package.DurationInDays),
+            EndDate = effectiveStartDate.AddDays(package.DurationInDays),
             Price = price,
             Debt = debt,
             Description = request.Description,
