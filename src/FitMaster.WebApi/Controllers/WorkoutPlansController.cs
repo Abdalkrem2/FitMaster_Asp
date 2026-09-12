@@ -40,7 +40,7 @@ public class WorkoutPlansController(ISender sender, ICurrentUserService currentU
     public async Task<IActionResult> GetMyActivePlanPdf(CancellationToken ct)
     {
         var plan = await sender.Send(new GetActiveWorkoutPlanQuery(currentUser.UserId!.Value), ct);
-        var pdfBytes = pdfGenerator.Generate(plan);
+        var pdfBytes = await pdfGenerator.GenerateAsync(plan, ct);
         return File(pdfBytes, "application/pdf", "workout-plan.pdf");
     }
 

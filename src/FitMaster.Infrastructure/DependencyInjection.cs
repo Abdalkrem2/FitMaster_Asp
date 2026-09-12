@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using FitMaster.Application.Common.Interfaces;
 using FitMaster.Application.NutritionGeneration;
+using FitMaster.Application.Pdf;
 using FitMaster.Infrastructure.Ai;
 using FitMaster.Infrastructure.Files;
 using FitMaster.Infrastructure.Identity;
@@ -50,6 +51,13 @@ public static class DependencyInjection
         // File uploads (Phase 9) - same lazy-credential-check pattern as Groq above.
         services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
+
+        // Exercise images for the workout plan PDF - short timeout so one slow/dead
+        // Cloudinary asset can't stall a PDF export; the fetcher itself never throws.
+        services.AddHttpClient<IExerciseImageFetcher, ExerciseImageFetcher>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         return services;
     }

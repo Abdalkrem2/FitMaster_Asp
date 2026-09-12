@@ -7,13 +7,30 @@ namespace FitMaster.Application.Pdf;
 
 public interface IWorkoutPlanPdfGenerator
 {
-    byte[] Generate(WorkoutPlanDto plan);
+    Task<byte[]> GenerateAsync(WorkoutPlanDto plan, CancellationToken cancellationToken);
 }
 
-public class WorkoutPlanPdfGenerator : IWorkoutPlanPdfGenerator
+public class WorkoutPlanPdfGenerator(IExerciseImageFetcher imageFetcher) : IWorkoutPlanPdfGenerator
 {
-    public byte[] Generate(WorkoutPlanDto plan)
+    public async Task<byte[]> GenerateAsync(WorkoutPlanDto plan, CancellationToken cancellationToken)
     {
+        // QuestPDF's document-building callback below is synchronous, so every image
+        // needed has to be fetched up front - deduplicated by URL since the same
+        // exercise (and its image) can appear on more than one day.
+        var imageUrls = plan.WorkoutDays
+            .SelectMany(d => d.WorkoutExercises)
+            .Select(e => e.ImageUrl)
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Distinct()
+            .ToList();
+
+        // Fetched in parallel - sequentially, ~30 small Cloudinary images added
+        // 10-15s to plan download; independent requests, no reason to serialize them.
+        var fetchResults = await Task.WhenAll(imageUrls.Select(async url => (Url: url!, Bytes: await imageFetcher.FetchAsync(url!, cancellationToken))));
+        var images = fetchResults
+            .Where(r => r.Bytes is not null)
+            .ToDictionary(r => r.Url, r => r.Bytes!);
+
         var document = Document.Create(container =>
         {
             container.Page(page =>
@@ -26,52 +43,52 @@ public class WorkoutPlanPdfGenerator : IWorkoutPlanPdfGenerator
                 {
                     col.Item().Text(plan.Name ?? "Workout Plan").FontSize(18).Bold();
                     col.Item().Text($"{plan.SplitType} - {plan.Goal} - {plan.Level}").FontSize(11);
-                    col.Item().PaddingBottom(10).LineHorizontal(1);
                 });
 
                 page.Content().Column(col =>
                 {
                     foreach (var day in plan.WorkoutDays)
                     {
-                        col.Item().PaddingTop(10).Text($"Day {day.DayNumber}: {day.MuscleGroupLabel}").FontSize(13).Bold();
+                        // Colored band, not just a bold line - makes each day
+                        // unmistakably its own section when skimming the PDF.
+                        col.Item().PaddingTop(14).Background(Colors.Indigo.Medium).Padding(8)
+                            .Text($"Day {day.DayNumber} — {day.MuscleGroupLabel}")
+                            .FontSize(13).Bold().FontColor(Colors.White);
 
-                        col.Item().PaddingTop(4).Table(table =>
+                        var number = 1;
+                        foreach (var exercise in day.WorkoutExercises)
                         {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.ConstantColumn(20);
-                                columns.RelativeColumn(4);
-                                columns.RelativeColumn(1);
-                                columns.RelativeColumn(1);
-                            });
+                            byte[]? imageBytes = exercise.ImageUrl is not null && images.TryGetValue(exercise.ImageUrl, out var found)
+                                ? found
+                                : null;
 
-                            table.Header(header =>
+                            col.Item().PaddingTop(8).Border(1).BorderColor(Colors.Grey.Lighten2)
+                                .Padding(8).Row(row =>
                             {
-                                header.Cell().Text("#").Bold();
-                                header.Cell().Text("Exercise").Bold();
-                                header.Cell().Text("Sets").Bold();
-                                header.Cell().Text("Reps").Bold();
-                                header.Cell().ColumnSpan(4).PaddingBottom(2).LineHorizontal(0.5f);
-                            });
+                                row.ConstantItem(20).Text(number.ToString()).FontSize(11).Bold();
 
-                            var number = 1;
-                            foreach (var exercise in day.WorkoutExercises)
-                            {
-                                table.Cell().PaddingTop(4).Text(number.ToString());
-                                table.Cell().PaddingVertical(4).Column(exerciseColumn =>
+                                if (imageBytes is not null)
                                 {
-                                    exerciseColumn.Item().Text(exercise.ExerciseName ?? "Exercise").Bold();
+                                    row.ConstantItem(70).Height(70).Image(imageBytes).FitArea();
+                                    row.ConstantItem(8);
+                                }
+
+                                row.RelativeItem().Column(details =>
+                                {
+                                    details.Item().Text(exercise.ExerciseName ?? "Exercise").Bold();
                                     for (var i = 0; i < exercise.Instructions.Count; i++)
                                     {
-                                        exerciseColumn.Item().PaddingTop(1)
+                                        details.Item().PaddingTop(1)
                                             .Text($"{i + 1}. {exercise.Instructions[i]}").FontSize(8.5f);
                                     }
                                 });
-                                table.Cell().PaddingTop(4).Text(exercise.Sets?.ToString() ?? "-");
-                                table.Cell().PaddingTop(4).Text(FormatReps(exercise));
-                                number++;
-                            }
-                        });
+
+                                row.ConstantItem(45).AlignRight().Text($"Sets\n{exercise.Sets?.ToString() ?? "-"}").FontSize(9);
+                                row.ConstantItem(50).AlignRight().Text($"Reps\n{FormatReps(exercise)}").FontSize(9);
+                            });
+
+                            number++;
+                        }
                     }
                 });
 
